@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { motion } from 'framer-motion';
-import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, Users, LogOut, TerminalSquare, Home } from 'lucide-react';
+import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, Users, LogOut, TerminalSquare, Home, BarChart2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
 
@@ -68,10 +68,8 @@ const Dashboard = () => {
   const [activeUser, setActiveUser] = useState(DEMO_USERS[0]);
   const [isViewingDemo, setIsViewingDemo] = useState(true);
 
-  // AI Typing Effect State
   const [displayedAiText, setDisplayedAiText] = useState("");
   
-  // Wallet Persistence
   useEffect(() => {
     const checkPersistedWallet = async () => {
       const savedAccount = localStorage.getItem("ritual_connected_account");
@@ -94,7 +92,6 @@ const Dashboard = () => {
     checkPersistedWallet();
   }, []);
 
-  // Init Public Read-Only Provider
   useEffect(() => {
     const init = async () => {
       try {
@@ -104,7 +101,6 @@ const Dashboard = () => {
         const mode = await agentContract.mockMode();
         setIsMockMode(mode);
         
-        // If not already viewing personal wallet from persistence
         if (isViewingDemo) {
           fetchUserData(DEMO_USERS[0].address, pProvider, DEMO_USERS[0]);
         }
@@ -134,7 +130,6 @@ const Dashboard = () => {
     }
   }, [score]);
 
-  // AI Text Typing Effect
   useEffect(() => {
     if (activeUser.aiAnalysis && score > 0) {
       let i = 0;
@@ -235,7 +230,6 @@ const Dashboard = () => {
         setIsCalculating(false);
         setCalcStep(0);
         
-        // Populate actual mock result
         const analysisStr = "LLM Analysis: Verified human identity. Healthy on-chain interaction with DeFi protocols. Github history indicates active developer. Excellent risk profile.";
         setActiveUser(prev => ({
           ...prev,
@@ -274,7 +268,7 @@ const Dashboard = () => {
           <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>RitualPrivScore</span>
         </Link>
         
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginLeft: 'auto' }}>
           <Link to="/">
             <button style={{ padding: '0.5rem 1rem' }}>
               <Home size={16} /> Home
@@ -310,8 +304,8 @@ const Dashboard = () => {
       </header>
 
       {/* Random Demo Selector */}
-      <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-        <div style={{ alignSelf: 'center', color: 'var(--text-secondary)', marginRight: '1rem' }}>Mock Users:</div>
+      <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ color: 'var(--text-secondary)' }}>Mock Users:</div>
         {DEMO_USERS.map((user, idx) => (
           <button 
             key={idx}
@@ -327,170 +321,185 @@ const Dashboard = () => {
       </div>
 
       <motion.div 
-        className="dashboard-grid"
+        style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem', alignItems: 'stretch' }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        {/* Left Column: Data Inputs */}
-        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Database size={20} color="var(--neon-blue)"/> Target Profile
-          </h3>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            Address: <span style={{ fontFamily: 'monospace' }}>{activeUser.address.substring(0,10)}...</span>
-          </p>
+        {/* Left Column: Metrics & Data */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           
-          <div className="data-row">
-            <span className="data-label"><Wallet size={14} style={{display:'inline', marginRight:'4px'}}/> Wallet Age</span>
-            <span className="data-value">{activeUser.mockData.age}</span>
-          </div>
-          <div className="data-row">
-            <span className="data-label"><Code size={14} style={{display:'inline', marginRight:'4px'}}/> Commits (1Y)</span>
-            <span className="data-value value-highlight">{activeUser.mockData.commits}</span>
-          </div>
-          <div className="data-row">
-            <span className="data-label"><Globe size={14} style={{display:'inline', marginRight:'4px'}}/> Social Rep</span>
-            <span className="data-value value-highlight">{activeUser.mockData.social}</span>
-          </div>
-          <div className="data-row">
-            <span className="data-label"><Activity size={14} style={{display:'inline', marginRight:'4px'}}/> Tx Volume</span>
-            <span className="data-value">{activeUser.mockData.tx}</span>
-          </div>
-
-          <div style={{ marginTop: '2rem' }}>
-            <h4 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Metrics Breakdown</h4>
+          {/* Data Inputs */}
+          <div className="glass-panel" style={{ flex: 1 }}>
+            <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+              <Database size={20} color="var(--neon-blue)"/> Wallet Analytics
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Address: <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>{activeUser.address.substring(0,10)}...</span>
+            </p>
             
-            <div style={{ marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                <span>On-chain Health</span>
-                <span style={{ color: 'var(--neon-green)' }}>{activeUser.metrics.onChain}%</span>
+            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '12px', marginTop: '1rem' }}>
+              <div className="data-row">
+                <span className="data-label"><Wallet size={14} style={{display:'inline', marginRight:'4px'}}/> Wallet Age</span>
+                <span className="data-value">{activeUser.mockData.age}</span>
               </div>
-              <div className="progress-container">
-                <div className="progress-fill" style={{ width: `${(score > 0) ? activeUser.metrics.onChain : 0}%`, background: 'var(--neon-green)' }}></div>
+              <div className="data-row">
+                <span className="data-label"><Code size={14} style={{display:'inline', marginRight:'4px'}}/> Commits (1Y)</span>
+                <span className="data-value value-highlight">{activeUser.mockData.commits}</span>
+              </div>
+              <div className="data-row">
+                <span className="data-label"><Globe size={14} style={{display:'inline', marginRight:'4px'}}/> Social Rep</span>
+                <span className="data-value value-highlight">{activeUser.mockData.social}</span>
+              </div>
+              <div className="data-row">
+                <span className="data-label"><Activity size={14} style={{display:'inline', marginRight:'4px'}}/> Tx Volume</span>
+                <span className="data-value">{activeUser.mockData.tx}</span>
               </div>
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                <span>Social Reputation</span>
-                <span style={{ color: 'var(--neon-blue)' }}>{activeUser.metrics.social}%</span>
+            <div style={{ marginTop: '2rem' }}>
+              <h4 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <BarChart2 size={16} /> Data Sources Breakdown
+              </h4>
+              
+              <div style={{ marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                  <span>On-chain Health</span>
+                  <span style={{ color: 'var(--neon-green)' }}>{activeUser.metrics.onChain}%</span>
+                </div>
+                <div className="progress-container">
+                  <div className="progress-fill" style={{ width: `${(score > 0) ? activeUser.metrics.onChain : 0}%`, background: 'var(--neon-green)' }}></div>
+                </div>
               </div>
-              <div className="progress-container">
-                <div className="progress-fill" style={{ width: `${(score > 0) ? activeUser.metrics.social : 0}%`, background: 'var(--neon-blue)' }}></div>
-              </div>
-            </div>
 
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                <span>Financial Capacity</span>
-                <span style={{ color: 'var(--neon-purple)' }}>{activeUser.metrics.financial}%</span>
+              <div style={{ marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                  <span>Social Reputation</span>
+                  <span style={{ color: 'var(--neon-blue)' }}>{activeUser.metrics.social}%</span>
+                </div>
+                <div className="progress-container">
+                  <div className="progress-fill" style={{ width: `${(score > 0) ? activeUser.metrics.social : 0}%`, background: 'var(--neon-blue)' }}></div>
+                </div>
               </div>
-              <div className="progress-container">
-                <div className="progress-fill" style={{ width: `${(score > 0) ? activeUser.metrics.financial : 0}%`, background: 'var(--neon-purple)' }}></div>
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                  <span>Financial Capacity</span>
+                  <span style={{ color: 'var(--neon-purple)' }}>{activeUser.metrics.financial}%</span>
+                </div>
+                <div className="progress-container">
+                  <div className="progress-fill" style={{ width: `${(score > 0) ? activeUser.metrics.financial : 0}%`, background: 'var(--neon-purple)' }}></div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* AI LLM Inference Insights */}
-          <div style={{ flex: 1, marginTop: '2rem' }}>
+        {/* Right Column: Score & AI */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2rem', flex: 1 }}>
+            
+            {/* Main Score Area */}
+            <div className="glass-panel" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+              <div className="circular-score" style={{ marginBottom: '2rem' }}>
+                <svg width="250" height="250" viewBox="0 0 250 250" style={{ transform: 'rotate(-90deg)' }}>
+                  <circle cx="125" cy="125" r="110" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="12" />
+                  <motion.circle 
+                    cx="125" cy="125" r="110" fill="none" 
+                    stroke="url(#gradient)" 
+                    strokeWidth="12"
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    animate={{ strokeDashoffset: isCalculating ? circumference : strokeDashoffset }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                  />
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="var(--neon-green)" />
+                      <stop offset="100%" stopColor="var(--neon-blue)" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div className="score-text">
+                  <div className="score-number" style={{ fontSize: '4.5rem' }}>{displayedScore}</div>
+                  <div className="score-label" style={{ fontSize: '1rem', fontWeight: 600 }}>PrivScore</div>
+                </div>
+              </div>
+
+              <button 
+                className="primary" 
+                style={{ width: '80%', fontSize: '1.1rem', padding: '1rem' }}
+                onClick={calculateScoreFlow}
+                disabled={!account || isCalculating || isViewingDemo}
+              >
+                {isCalculating ? <RefreshCw className="lucide-spin" /> : <Zap />}
+                {isViewingDemo ? 'Connect Wallet to Compute' : (isCalculating ? 'Computing in Enclave...' : 'Calculate Private Score')}
+              </button>
+            </div>
+
+            {/* Verification Steps */}
+            <div className="glass-panel">
+              <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+                <Cpu size={20} color="var(--neon-purple)"/> Verification Steps
+              </h3>
+              
+              <div style={{ marginTop: '1.5rem' }}>
+                <div className={`step-item ${(calcStep >= 1 || score > 0) ? 'active' : ''} ${calcStep > 1 || score > 0 ? 'completed' : ''}`}>
+                  <div className="step-icon"><Database size={16} /></div>
+                  <div>
+                    <div style={{ fontWeight: 600 }}>1. Fetch Private Data</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Via Ritual HTTP Precompile</div>
+                  </div>
+                </div>
+                
+                <div className={`step-item ${(calcStep >= 2 || score > 0) ? 'active' : ''} ${calcStep > 2 || score > 0 ? 'completed' : ''}`}>
+                  <div className="step-icon"><Cpu size={16} /></div>
+                  <div>
+                    <div style={{ fontWeight: 600 }}>2. LLM Evaluation</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Run model inside Enclave</div>
+                  </div>
+                </div>
+
+                <div className={`step-item ${(calcStep >= 3 || score > 0) ? 'active' : ''} ${calcStep > 3 || score > 0 ? 'completed' : ''}`}>
+                  <div className="step-icon"><Award size={16} /></div>
+                  <div>
+                    <div style={{ fontWeight: 600 }}>3. Attestation & Mint</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Generate ERC-721 Certificate</div>
+                  </div>
+                </div>
+              </div>
+
+              {hasCert && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  style={{ 
+                    marginTop: '2rem', padding: '1rem', 
+                    background: 'rgba(0,255,163,0.1)', border: '1px solid var(--neon-green)',
+                    borderRadius: '12px', display: 'flex', gap: '0.5rem', alignItems: 'center'
+                  }}
+                >
+                  <CheckCircle color="var(--neon-green)" />
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--neon-green)' }}>Verified Certificate</div>
+                    <div style={{ fontSize: '0.8rem' }}>ERC-721 Soulbound Minted</div>
+                  </div>
+                </motion.div>
+              )}
+
+            </div>
+          </div>
+
+          {/* AI Inference Block spanning Right Column */}
+          <div className="glass-panel">
             <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1rem 0' }}>
-              <TerminalSquare size={16} color="var(--neon-purple)" /> TEE LLM Inference
+              <TerminalSquare size={16} color="var(--neon-purple)" /> TEE LLM Inference Log
             </h4>
-            <div className="ai-insights">
+            <div className="ai-insights" style={{ minHeight: '80px', fontSize: '1rem' }}>
               {displayedAiText}
               {(score > 0 && activeUser.aiAnalysis) && <span className="ai-cursor"></span>}
               {(score === 0 || !activeUser.aiAnalysis) && <span style={{opacity: 0.5}}>Waiting for computation...</span>}
             </div>
           </div>
-        </div>
-
-        {/* Center Column: The Score */}
-        <div className="glass-panel" style={{ textAlign: 'center', position: 'relative', padding: '3rem 2rem' }}>
-          
-          <div className="circular-score">
-            <svg width="250" height="250" viewBox="0 0 250 250" style={{ transform: 'rotate(-90deg)' }}>
-              <circle cx="125" cy="125" r="110" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="12" />
-              <motion.circle 
-                cx="125" cy="125" r="110" fill="none" 
-                stroke="url(#gradient)" 
-                strokeWidth="12"
-                strokeLinecap="round"
-                strokeDasharray={circumference}
-                animate={{ strokeDashoffset: isCalculating ? circumference : strokeDashoffset }}
-                transition={{ duration: 1, ease: "easeOut" }}
-              />
-              <defs>
-                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="var(--neon-green)" />
-                  <stop offset="100%" stopColor="var(--neon-blue)" />
-                </linearGradient>
-              </defs>
-            </svg>
-            <div className="score-text">
-              <div className="score-number">{displayedScore}</div>
-              <div className="score-label">PrivScore</div>
-            </div>
-          </div>
-
-          <button 
-            className="primary" 
-            style={{ width: '100%', fontSize: '1.1rem', padding: '1rem' }}
-            onClick={calculateScoreFlow}
-            disabled={!account || isCalculating || isViewingDemo}
-          >
-            {isCalculating ? <RefreshCw className="lucide-spin" /> : <Zap />}
-            {isViewingDemo ? 'Connect Wallet to Compute' : (isCalculating ? 'Computing in Enclave...' : 'Calculate My Private Score')}
-          </button>
-        </div>
-
-        {/* Right Column: TEE Process */}
-        <div className="glass-panel">
-          <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Cpu size={20} color="var(--neon-purple)"/> Verification Steps
-          </h3>
-          
-          <div style={{ marginTop: '2rem' }}>
-            <div className={`step-item ${(calcStep >= 1 || score > 0) ? 'active' : ''} ${calcStep > 1 || score > 0 ? 'completed' : ''}`}>
-              <div className="step-icon"><Database size={16} /></div>
-              <div>
-                <div style={{ fontWeight: 600 }}>1. Fetch Private Data</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Via Ritual HTTP Precompile</div>
-              </div>
-            </div>
-            
-            <div className={`step-item ${(calcStep >= 2 || score > 0) ? 'active' : ''} ${calcStep > 2 || score > 0 ? 'completed' : ''}`}>
-              <div className="step-icon"><Cpu size={16} /></div>
-              <div>
-                <div style={{ fontWeight: 600 }}>2. LLM Evaluation</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Run model inside Enclave</div>
-              </div>
-            </div>
-
-            <div className={`step-item ${(calcStep >= 3 || score > 0) ? 'active' : ''} ${calcStep > 3 || score > 0 ? 'completed' : ''}`}>
-              <div className="step-icon"><Award size={16} /></div>
-              <div>
-                <div style={{ fontWeight: 600 }}>3. Attestation & Mint</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Generate ERC-721 Certificate</div>
-              </div>
-            </div>
-          </div>
-
-          {hasCert && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              style={{ 
-                marginTop: '2rem', padding: '1rem', 
-                background: 'rgba(0,255,163,0.1)', border: '1px solid var(--neon-green)',
-                borderRadius: '12px', display: 'flex', gap: '0.5rem', alignItems: 'center'
-              }}
-            >
-              <CheckCircle color="var(--neon-green)" />
-              <div>
-                <div style={{ fontWeight: 600, color: 'var(--neon-green)' }}>Verified Certificate</div>
-                <div style={{ fontSize: '0.8rem' }}>ERC-721 Soulbound Minted</div>
-              </div>
-            </motion.div>
-          )}
 
         </div>
 
