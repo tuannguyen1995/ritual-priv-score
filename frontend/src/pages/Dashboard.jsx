@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ethers } from 'ethers';
 import { motion } from 'framer-motion';
-import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, Users, LogOut, TerminalSquare, Home, BarChart2, Search, TrendingUp } from 'lucide-react';
+import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, Users, LogOut, TerminalSquare, Home, BarChart2, Search, TrendingUp, Network } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
+import ForceGraph2D from 'react-force-graph-2d';
 
 const SCORE_CONTRACT_ADDRESS = "0x5320d14E4a86deF51723A806A38947498Ea09261";
 const AGENT_CONTRACT_ADDRESS = "0x409F997461874371233154402cd106e3c3d37184";
@@ -51,6 +52,30 @@ const LEADERBOARD_DATA = [
   { address: "0x333...3333", score: 400, rank: "C", time: "1 day ago" },
 ];
 
+const generateGraphData = (seedName) => {
+  const nodes = [{ id: 'wallet', name: seedName, val: 12, color: '#00FFA3' }];
+  const links = [];
+  const protocols = ['Uniswap', 'Aave', 'Compound', 'OpenSea', 'Blur', 'Lido', 'Maker'];
+  
+  protocols.forEach((p, i) => {
+    // Add protocol node
+    nodes.push({ id: p, name: p, val: 5, color: '#8B5CF6' });
+    links.push({ source: 'wallet', target: p });
+    
+    // Add sub-interactions randomly
+    if (Math.random() > 0.3) {
+      const subId = `${p}_pool_${i}`;
+      nodes.push({ id: subId, name: `${p} Pool`, val: 3, color: '#00B8FF' });
+      links.push({ source: p, target: subId });
+      if (Math.random() > 0.5) {
+        links.push({ source: 'wallet', target: subId });
+      }
+    }
+  });
+
+  return { nodes, links };
+};
+
 const Dashboard = () => {
   const [provider, setProvider] = useState(null);
   const [publicProvider, setPublicProvider] = useState(null);
@@ -72,6 +97,8 @@ const Dashboard = () => {
   const [searchInput, setSearchInput] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   
+  const [graphData, setGraphData] = useState(() => generateGraphData(TRENDING_PROFILES[0].name));
+
   useEffect(() => {
     const checkPersistedWallet = async () => {
       const savedAccount = localStorage.getItem("ritual_connected_account");
@@ -207,6 +234,7 @@ const Dashboard = () => {
       metrics: { onChain: 0, social: 0, financial: 0 },
       aiAnalysis: ""
     });
+    setGraphData(generateGraphData("Your Wallet"));
     fetchUserData(address, browserProvider, null);
   };
 
@@ -292,6 +320,7 @@ const Dashboard = () => {
       }
       
       setActiveUser(targetUser);
+      setGraphData(generateGraphData(targetUser.name));
       setIsSearching(false);
       setCalcStep(4);
       
@@ -402,6 +431,33 @@ const Dashboard = () => {
         {/* Left Column: Metrics & Data */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           
+          {/* On-chain Graph */}
+          <div className="glass-panel" style={{ position: 'relative', overflow: 'hidden', padding: 0, height: '300px' }}>
+            <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 10, display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0,0,0,0.5)', padding: '0.5rem 1rem', borderRadius: '50px', border: '1px solid var(--border-color)', backdropFilter: 'blur(5px)' }}>
+              <Network size={16} color="var(--neon-purple)" />
+              <span style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>On-chain Footprint</span>
+            </div>
+            {isSearching ? (
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <RefreshCw className="lucide-spin" size={32} color="var(--neon-purple)" />
+              </div>
+            ) : (
+              <ForceGraph2D
+                graphData={graphData}
+                width={400}
+                height={300}
+                backgroundColor="transparent"
+                nodeColor={node => node.color}
+                nodeRelSize={6}
+                linkColor={() => 'rgba(255,255,255,0.2)'}
+                linkDirectionalParticles={2}
+                linkDirectionalParticleSpeed={0.01}
+                linkDirectionalParticleWidth={2}
+                enableZoomPanInteraction={false}
+              />
+            )}
+          </div>
+
           {/* Data Inputs */}
           <div className="glass-panel" style={{ flex: 1, position: 'relative' }}>
             {isSearching && (
