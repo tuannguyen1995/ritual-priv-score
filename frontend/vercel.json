@@ -1,3 +1,6 @@
 {
-  "name": "ritualprivscore"
+  "name": "ritualprivscore",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
