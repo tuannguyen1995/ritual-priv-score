@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Github, Twitter, Zap } from 'lucide-react';
+import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw } from 'lucide-react';
 import './index.css';
 
 const SCORE_CONTRACT_ADDRESS = "0x5320d14E4a86deF51723A806A38947498Ea09261";
@@ -203,11 +203,11 @@ function App() {
             <span className="data-value">2.4 Years</span>
           </div>
           <div className="data-row">
-            <span className="data-label"><Github size={14} style={{display:'inline', marginRight:'4px'}}/> Commits (1Y)</span>
+            <span className="data-label"><Code size={14} style={{display:'inline', marginRight:'4px'}}/> Commits (1Y)</span>
             <span className="data-value value-highlight">1,204</span>
           </div>
           <div className="data-row">
-            <span className="data-label"><Twitter size={14} style={{display:'inline', marginRight:'4px'}}/> Social Rep</span>
+            <span className="data-label"><Globe size={14} style={{display:'inline', marginRight:'4px'}}/> Social Rep</span>
             <span className="data-value value-highlight">Good</span>
           </div>
           <div className="data-row">
