@@ -141,7 +141,8 @@ button:disabled {
   gap: 1rem;
   margin-bottom: 1rem;
   position: relative;
-  max-width: 800px;
+  width: 100%;
+  max-width: 1100px;
 }
 
 .search-input {

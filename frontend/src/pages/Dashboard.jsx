@@ -353,7 +353,7 @@ const Dashboard = () => {
       </header>
 
       {/* Explorer Search Section */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '3rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '3rem', width: '100%' }}>
         <div className="search-container">
           <input 
             type="text" 
