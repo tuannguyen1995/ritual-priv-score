@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { motion } from 'framer-motion';
-import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, Users, LogOut, TerminalSquare } from 'lucide-react';
+import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, Users, LogOut, TerminalSquare, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Footer from '../components/Footer';
 
 const SCORE_CONTRACT_ADDRESS = "0x5320d14E4a86deF51723A806A38947498Ea09261";
 const AGENT_CONTRACT_ADDRESS = "0x409F997461874371233154402cd106e3c3d37184";
@@ -23,20 +24,31 @@ const DEMO_USERS = [
     name: "Demo User A (High Rep)", 
     address: "0x1111111111111111111111111111111111111111", 
     mockData: { age: "4.5 Years", commits: "3,450", social: "Excellent", tx: "120.5 ETH", expectedScore: 820 },
+    metrics: { onChain: 90, social: 85, financial: 95 },
     aiAnalysis: "LLM Analysis: Strong on-chain history with significant Tx volume. Consistent github activity indicates high developer reputation. Low risk profile."
   },
   { 
     name: "Demo User B (Average)", 
     address: "0x2222222222222222222222222222222222222222", 
     mockData: { age: "1.2 Years", commits: "120", social: "Neutral", tx: "5.2 ETH", expectedScore: 610 },
+    metrics: { onChain: 55, social: 50, financial: 60 },
     aiAnalysis: "LLM Analysis: Moderate activity. Wallet is relatively young. Social reputation is neutral. Acceptable risk but lacks long-term track record."
   },
   { 
     name: "Demo User C (Newbie)", 
     address: "0x3333333333333333333333333333333333333333", 
     mockData: { age: "0.1 Years", commits: "0", social: "None", tx: "0.1 ETH", expectedScore: 400 },
+    metrics: { onChain: 10, social: 0, financial: 15 },
     aiAnalysis: "LLM Analysis: Sybil risk detected. Minimal on-chain footprint. No verifiable off-chain developer or social activity. High risk profile."
   }
+];
+
+const LEADERBOARD_DATA = [
+  { address: "0x7a2...3f1c", score: 890, rank: "S", time: "2 mins ago" },
+  { address: "0x111...1111", score: 820, rank: "A", time: "1 hour ago" },
+  { address: "0x9b4...2e8a", score: 715, rank: "A", time: "3 hours ago" },
+  { address: "0x222...2222", score: 610, rank: "B", time: "5 hours ago" },
+  { address: "0x333...3333", score: 400, rank: "C", time: "1 day ago" },
 ];
 
 const Dashboard = () => {
@@ -195,6 +207,7 @@ const Dashboard = () => {
       name: "Your Wallet",
       address: address,
       mockData: { age: "?", commits: "?", social: "?", tx: "?" },
+      metrics: { onChain: 0, social: 0, financial: 0 },
       aiAnalysis: ""
     });
     fetchUserData(address, browserProvider, null);
@@ -227,6 +240,7 @@ const Dashboard = () => {
         setActiveUser(prev => ({
           ...prev,
           mockData: { age: "2.1 Years", commits: "840", social: "Good", tx: "34 ETH" },
+          metrics: { onChain: 88, social: 75, financial: 85 },
           aiAnalysis: analysisStr
         }));
         
@@ -261,6 +275,11 @@ const Dashboard = () => {
         </Link>
         
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <Link to="/">
+            <button style={{ padding: '0.5rem 1rem' }}>
+              <Home size={16} /> Home
+            </button>
+          </Link>
           {isViewingDemo ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--neon-blue)', background: 'rgba(0,184,255,0.1)', padding: '0.5rem 1rem', borderRadius: '12px' }}>
               <Users size={16} /> Public Read-Only Mode
@@ -336,6 +355,40 @@ const Dashboard = () => {
           <div className="data-row">
             <span className="data-label"><Activity size={14} style={{display:'inline', marginRight:'4px'}}/> Tx Volume</span>
             <span className="data-value">{activeUser.mockData.tx}</span>
+          </div>
+
+          <div style={{ marginTop: '2rem' }}>
+            <h4 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Metrics Breakdown</h4>
+            
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                <span>On-chain Health</span>
+                <span style={{ color: 'var(--neon-green)' }}>{activeUser.metrics.onChain}%</span>
+              </div>
+              <div className="progress-container">
+                <div className="progress-fill" style={{ width: `${(score > 0) ? activeUser.metrics.onChain : 0}%`, background: 'var(--neon-green)' }}></div>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                <span>Social Reputation</span>
+                <span style={{ color: 'var(--neon-blue)' }}>{activeUser.metrics.social}%</span>
+              </div>
+              <div className="progress-container">
+                <div className="progress-fill" style={{ width: `${(score > 0) ? activeUser.metrics.social : 0}%`, background: 'var(--neon-blue)' }}></div>
+              </div>
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                <span>Financial Capacity</span>
+                <span style={{ color: 'var(--neon-purple)' }}>{activeUser.metrics.financial}%</span>
+              </div>
+              <div className="progress-container">
+                <div className="progress-fill" style={{ width: `${(score > 0) ? activeUser.metrics.financial : 0}%`, background: 'var(--neon-purple)' }}></div>
+              </div>
+            </div>
           </div>
 
           {/* AI LLM Inference Insights */}
@@ -443,6 +496,45 @@ const Dashboard = () => {
 
       </motion.div>
 
+      {/* Leaderboard Section */}
+      <motion.div 
+        className="glass-panel"
+        style={{ marginTop: '2rem' }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <h3 style={{ marginTop: 0, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Award size={20} color="var(--neon-blue)" /> Recent TEE Attestations (Leaderboard)
+        </h3>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="leaderboard-table">
+            <thead>
+              <tr>
+                <th>Address</th>
+                <th>PrivScore</th>
+                <th>Reputation Rank</th>
+                <th>Time (Block)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {LEADERBOARD_DATA.map((item, index) => (
+                <tr key={index}>
+                  <td style={{ fontFamily: 'monospace' }}>{item.address}</td>
+                  <td style={{ fontWeight: 'bold' }}>{item.score}</td>
+                  <td>
+                    <span className={`rank-badge rank-${item.rank.toLowerCase()}`}>
+                      Class {item.rank}
+                    </span>
+                  </td>
+                  <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{item.time}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
+
       {/* TEE Node Status Badge */}
       <div className="tee-status">
         <div className={`status-dot ${isCalculating ? 'computing' : ''}`}></div>
@@ -453,6 +545,8 @@ const Dashboard = () => {
           <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Ritual Testnet • ID 1979</div>
         </div>
       </div>
+
+      <Footer />
       
       <style>{`
         .lucide-spin { animation: spin 2s linear infinite; }
