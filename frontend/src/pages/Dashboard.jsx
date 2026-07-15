@@ -447,13 +447,29 @@ const Dashboard = () => {
                 width={400}
                 height={300}
                 backgroundColor="transparent"
-                nodeColor={node => node.color}
                 nodeRelSize={6}
                 linkColor={() => 'rgba(255,255,255,0.2)'}
                 linkDirectionalParticles={2}
                 linkDirectionalParticleSpeed={0.01}
                 linkDirectionalParticleWidth={2}
                 enableZoomPanInteraction={false}
+                nodeCanvasObject={(node, ctx, globalScale) => {
+                  const label = node.name;
+                  const fontSize = 12 / globalScale;
+                  ctx.font = `${fontSize}px Sans-Serif`;
+
+                  // Draw node circle
+                  ctx.fillStyle = node.color;
+                  ctx.beginPath();
+                  ctx.arc(node.x, node.y, node.val, 0, 2 * Math.PI, false);
+                  ctx.fill();
+
+                  // Draw text
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                  ctx.fillText(label, node.x, node.y + node.val + (fontSize));
+                }}
               />
             )}
           </div>
