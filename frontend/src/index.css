@@ -4,6 +4,7 @@
   --neon-green: #00FFA3;
   --neon-blue: #00B8FF;
   --neon-purple: #8B5CF6;
+  --neon-red: #FF3366;
   --text-primary: #FFFFFF;
   --text-secondary: rgba(255, 255, 255, 0.6);
   --border-color: rgba(255, 255, 255, 0.08);
@@ -47,6 +48,7 @@ body {
   margin: 0 auto;
   padding: 2rem;
   width: 100%;
+  position: relative;
 }
 
 header {
@@ -113,6 +115,15 @@ button.primary {
 button.primary:hover:not(:disabled) {
   box-shadow: 0 8px 25px rgba(0, 184, 255, 0.5);
   transform: translateY(-2px) scale(1.02);
+}
+
+button.danger {
+  border-color: rgba(255, 51, 102, 0.3);
+  color: var(--neon-red);
+}
+button.danger:hover {
+  background: rgba(255, 51, 102, 0.1);
+  border-color: var(--neon-red);
 }
 
 button:disabled {
@@ -227,4 +238,81 @@ button:disabled {
   letter-spacing: 0.1em;
   color: var(--text-secondary);
   margin-top: 0.5rem;
+}
+
+/* AI Typing Text */
+.ai-insights {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(139, 92, 246, 0.05);
+  border: 1px dashed rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.ai-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 15px;
+  background: var(--neon-purple);
+  margin-left: 4px;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* TEE Status Badge */
+.tee-status {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid var(--border-color);
+  padding: 0.8rem 1.2rem;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-family: monospace;
+  font-size: 0.8rem;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+}
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--neon-green);
+  box-shadow: 0 0 10px var(--neon-green);
+  animation: pulse-dot 2s infinite;
+}
+.status-dot.computing {
+  background: var(--neon-purple);
+  box-shadow: 0 0 10px var(--neon-purple);
+  animation: pulse-dot 0.5s infinite;
+}
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+/* Stat Box (Landing) */
+.stat-box {
+  text-align: center;
+  padding: 1rem;
+}
+.stat-num {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--neon-blue);
+  font-family: monospace;
+}
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }

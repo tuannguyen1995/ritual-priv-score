@@ -1,13 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, ArrowRight, Lock, Zap, Cpu } from 'lucide-react';
+import { Shield, ArrowRight, Lock, Zap, Cpu, Network } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Landing = () => {
   const navigate = useNavigate();
 
+  // Simulated live stats counter
+  const [stats, setStats] = useState({ profiles: 12450, attestations: 45210 });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStats(prev => ({
+        profiles: prev.profiles + Math.floor(Math.random() * 3),
+        attestations: prev.attestations + Math.floor(Math.random() * 5)
+      }));
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div style={{ textAlign: 'center', paddingTop: '4rem' }}>
+    <div style={{ textAlign: 'center', paddingTop: '4rem', paddingBottom: '4rem' }}>
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -30,9 +43,28 @@ const Landing = () => {
         </button>
       </motion.div>
 
+      {/* Live Stats Section */}
+      <motion.div 
+        style={{ marginTop: '4rem', display: 'flex', justifyContent: 'center', gap: '4rem', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '2rem 0' }}
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, duration: 1 }}
+      >
+        <div className="stat-box">
+          <div className="stat-num">{stats.profiles.toLocaleString()}</div>
+          <div className="stat-label">Profiles Scored</div>
+        </div>
+        <div className="stat-box" style={{ borderLeft: '1px solid var(--border-color)', paddingLeft: '4rem' }}>
+          <div className="stat-num">{stats.attestations.toLocaleString()}</div>
+          <div className="stat-label">TEE Attestations</div>
+        </div>
+        <div className="stat-box" style={{ borderLeft: '1px solid var(--border-color)', paddingLeft: '4rem' }}>
+          <div className="stat-num">0 ms</div>
+          <div className="stat-label">Data Leakage</div>
+        </div>
+      </motion.div>
+
       <motion.div 
         className="dashboard-grid" 
-        style={{ marginTop: '6rem', gridTemplateColumns: 'repeat(3, 1fr)' }}
+        style={{ marginTop: '4rem', gridTemplateColumns: 'repeat(3, 1fr)' }}
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 1 }}
       >
         <div className="glass-panel" style={{ padding: '2rem' }}>

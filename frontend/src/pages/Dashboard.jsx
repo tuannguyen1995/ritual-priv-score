@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { motion } from 'framer-motion';
-import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, Users } from 'lucide-react';
+import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, Users, LogOut, TerminalSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const SCORE_CONTRACT_ADDRESS = "0x5320d14E4a86deF51723A806A38947498Ea09261";
@@ -18,22 +18,24 @@ const agentAbi = [
   "function mockMode() view returns (bool)"
 ];
 
-// Mock Users for Demo
 const DEMO_USERS = [
   { 
     name: "Demo User A (High Rep)", 
     address: "0x1111111111111111111111111111111111111111", 
-    mockData: { age: "4.5 Years", commits: "3,450", social: "Excellent", tx: "120.5 ETH", expectedScore: 820 } 
+    mockData: { age: "4.5 Years", commits: "3,450", social: "Excellent", tx: "120.5 ETH", expectedScore: 820 },
+    aiAnalysis: "LLM Analysis: Strong on-chain history with significant Tx volume. Consistent github activity indicates high developer reputation. Low risk profile."
   },
   { 
     name: "Demo User B (Average)", 
     address: "0x2222222222222222222222222222222222222222", 
-    mockData: { age: "1.2 Years", commits: "120", social: "Neutral", tx: "5.2 ETH", expectedScore: 610 } 
+    mockData: { age: "1.2 Years", commits: "120", social: "Neutral", tx: "5.2 ETH", expectedScore: 610 },
+    aiAnalysis: "LLM Analysis: Moderate activity. Wallet is relatively young. Social reputation is neutral. Acceptable risk but lacks long-term track record."
   },
   { 
     name: "Demo User C (Newbie)", 
     address: "0x3333333333333333333333333333333333333333", 
-    mockData: { age: "0.1 Years", commits: "0", social: "None", tx: "0.1 ETH", expectedScore: 400 } 
+    mockData: { age: "0.1 Years", commits: "0", social: "None", tx: "0.1 ETH", expectedScore: 400 },
+    aiAnalysis: "LLM Analysis: Sybil risk detected. Minimal on-chain footprint. No verifiable off-chain developer or social activity. High risk profile."
   }
 ];
 
@@ -45,7 +47,6 @@ const Dashboard = () => {
   const [score, setScore] = useState(0);
   const [hasCert, setHasCert] = useState(false);
   
-  // TEE Process State
   const [isCalculating, setIsCalculating] = useState(false);
   const [calcStep, setCalcStep] = useState(0); 
   
@@ -54,6 +55,32 @@ const Dashboard = () => {
   
   const [activeUser, setActiveUser] = useState(DEMO_USERS[0]);
   const [isViewingDemo, setIsViewingDemo] = useState(true);
+
+  // AI Typing Effect State
+  const [displayedAiText, setDisplayedAiText] = useState("");
+  
+  // Wallet Persistence
+  useEffect(() => {
+    const checkPersistedWallet = async () => {
+      const savedAccount = localStorage.getItem("ritual_connected_account");
+      if (savedAccount && window.ethereum) {
+        try {
+          const browserProvider = new ethers.BrowserProvider(window.ethereum);
+          const accounts = await browserProvider.send("eth_accounts", []);
+          if (accounts.length > 0 && accounts[0].toLowerCase() === savedAccount.toLowerCase()) {
+            setProvider(browserProvider);
+            setAccount(accounts[0]);
+            switchToMyWallet(accounts[0], browserProvider);
+          } else {
+            localStorage.removeItem("ritual_connected_account");
+          }
+        } catch (err) {
+          console.error("Failed to restore wallet session");
+        }
+      }
+    };
+    checkPersistedWallet();
+  }, []);
 
   // Init Public Read-Only Provider
   useEffect(() => {
@@ -64,14 +91,17 @@ const Dashboard = () => {
         const agentContract = new ethers.Contract(AGENT_CONTRACT_ADDRESS, agentAbi, pProvider);
         const mode = await agentContract.mockMode();
         setIsMockMode(mode);
-        // Fetch initial demo data
-        fetchUserData(DEMO_USERS[0].address, pProvider, DEMO_USERS[0]);
+        
+        // If not already viewing personal wallet from persistence
+        if (isViewingDemo) {
+          fetchUserData(DEMO_USERS[0].address, pProvider, DEMO_USERS[0]);
+        }
       } catch (err) {
         console.error("Public RPC Failed:", err);
       }
     };
     init();
-  }, []);
+  }, [isViewingDemo]);
 
   useEffect(() => {
     if (score > 0) {
@@ -92,21 +122,34 @@ const Dashboard = () => {
     }
   }, [score]);
 
+  // AI Text Typing Effect
+  useEffect(() => {
+    if (activeUser.aiAnalysis && score > 0) {
+      let i = 0;
+      setDisplayedAiText("");
+      const typingTimer = setInterval(() => {
+        setDisplayedAiText(prev => prev + activeUser.aiAnalysis.charAt(i));
+        i++;
+        if (i >= activeUser.aiAnalysis.length) clearInterval(typingTimer);
+      }, 20);
+      return () => clearInterval(typingTimer);
+    } else {
+      setDisplayedAiText("");
+    }
+  }, [activeUser, score]);
+
   const fetchUserData = async (targetAddress, targetProvider, userProfile) => {
     try {
       const scoreContract = new ethers.Contract(SCORE_CONTRACT_ADDRESS, scoreAbi, targetProvider);
-      
       let currentScore = await scoreContract.creditScores(targetAddress);
       
-      // If demo user hasn't been scored on-chain yet, we simulate the public dashboard read
-      if (currentScore == 0 && isViewingDemo) {
+      if (currentScore == 0 && isViewingDemo && userProfile) {
         currentScore = userProfile.expectedScore; 
       }
       
       setScore(Number(currentScore));
       
       const certId = await scoreContract.soulboundCertificates(targetAddress);
-      // Mock cert status for demo visual if score >= 700
       setHasCert(certId > 0 || (isViewingDemo && currentScore >= 700));
     } catch (err) {
       console.error(err);
@@ -121,7 +164,6 @@ const Dashboard = () => {
         const signer = await browserProvider.getSigner();
         const address = await signer.getAddress();
         
-        // Ensure network
         const network = await browserProvider.getNetwork();
         if (Number(network.chainId) !== CHAIN_ID) {
           await window.ethereum.request({
@@ -130,21 +172,32 @@ const Dashboard = () => {
           });
         }
         
+        localStorage.setItem("ritual_connected_account", address);
         setProvider(browserProvider);
         setAccount(address);
-        setIsViewingDemo(false);
-        setActiveUser({
-          name: "Your Wallet",
-          address: address,
-          mockData: { age: "?", commits: "?", social: "?", tx: "?" } // Will be evaluated by TEE
-        });
-        
-        // Fetch actual chain data for this wallet
-        fetchUserData(address, browserProvider, null);
+        switchToMyWallet(address, browserProvider);
       } catch (err) {}
     } else {
       alert("Please install MetaMask!");
     }
+  };
+
+  const disconnectWallet = () => {
+    localStorage.removeItem("ritual_connected_account");
+    setAccount("");
+    setProvider(null);
+    selectDemoUser(DEMO_USERS[0]);
+  };
+
+  const switchToMyWallet = (address, browserProvider) => {
+    setIsViewingDemo(false);
+    setActiveUser({
+      name: "Your Wallet",
+      address: address,
+      mockData: { age: "?", commits: "?", social: "?", tx: "?" },
+      aiAnalysis: ""
+    });
+    fetchUserData(address, browserProvider, null);
   };
 
   const calculateScoreFlow = async () => {
@@ -168,12 +221,16 @@ const Dashboard = () => {
       setTimeout(() => {
         setIsCalculating(false);
         setCalcStep(0);
-        fetchUserData(account, provider, null);
-        // Simulate data fetch populating
+        
+        // Populate actual mock result
+        const analysisStr = "LLM Analysis: Verified human identity. Healthy on-chain interaction with DeFi protocols. Github history indicates active developer. Excellent risk profile.";
         setActiveUser(prev => ({
           ...prev,
-          mockData: { age: "1.5 Years", commits: "500", social: "Good", tx: "10 ETH" }
+          mockData: { age: "2.1 Years", commits: "840", social: "Good", tx: "34 ETH" },
+          aiAnalysis: analysisStr
         }));
+        
+        fetchUserData(account, provider, null);
       }, 1000);
       
     } catch (err) {
@@ -186,7 +243,6 @@ const Dashboard = () => {
   const selectDemoUser = (user) => {
     setIsViewingDemo(true);
     setActiveUser(user);
-    setAccount(""); // Disconnect UI state to show read-only
     setScore(0);
     if (publicProvider) {
       fetchUserData(user.address, publicProvider, user);
@@ -204,22 +260,33 @@ const Dashboard = () => {
           <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>RitualPrivScore</span>
         </Link>
         
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          {isViewingDemo && (
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          {isViewingDemo ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--neon-blue)', background: 'rgba(0,184,255,0.1)', padding: '0.5rem 1rem', borderRadius: '12px' }}>
               <Users size={16} /> Public Read-Only Mode
             </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--neon-green)', background: 'rgba(0,255,163,0.1)', padding: '0.5rem 1rem', borderRadius: '12px' }}>
+              <Wallet size={16} /> My Wallet Connected
+            </div>
           )}
-          <button 
-            onClick={connectWallet}
-            style={{ 
-              borderColor: account ? 'var(--neon-green)' : 'var(--border-color)',
-              color: account ? 'var(--neon-green)' : 'inherit'
-            }}
-          >
-            <Wallet size={18} />
-            {account ? `${account.substring(0, 6)}...${account.substring(38)}` : 'Connect Wallet to Compute'}
-          </button>
+          
+          {!account ? (
+            <button onClick={connectWallet} className="primary">
+              <Wallet size={18} /> Connect Wallet
+            </button>
+          ) : (
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              {isViewingDemo && (
+                 <button onClick={() => switchToMyWallet(account, provider)} style={{ borderColor: 'var(--neon-green)', color: 'var(--neon-green)' }}>
+                   View My Score
+                 </button>
+              )}
+              <button onClick={disconnectWallet} className="danger">
+                <LogOut size={18} /> Disconnect ({account.substring(0, 4)}...{account.substring(38)})
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -231,8 +298,8 @@ const Dashboard = () => {
             key={idx}
             onClick={() => selectDemoUser(user)}
             style={{ 
-              background: activeUser.address === user.address ? 'rgba(255,255,255,0.1)' : 'transparent',
-              borderColor: activeUser.address === user.address ? 'var(--text-primary)' : 'var(--border-color)'
+              background: (activeUser.address === user.address && isViewingDemo) ? 'rgba(255,255,255,0.1)' : 'transparent',
+              borderColor: (activeUser.address === user.address && isViewingDemo) ? 'var(--text-primary)' : 'var(--border-color)'
             }}
           >
             {user.name}
@@ -246,12 +313,12 @@ const Dashboard = () => {
         animate={{ opacity: 1, y: 0 }}
       >
         {/* Left Column: Data Inputs */}
-        <div className="glass-panel">
+        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Database size={20} color="var(--neon-blue)"/> Target Profile
           </h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            Address: <span style={{ fontFamily: 'monospace' }}>{activeUser.address.substring(0,8)}...</span>
+            Address: <span style={{ fontFamily: 'monospace' }}>{activeUser.address.substring(0,10)}...</span>
           </p>
           
           <div className="data-row">
@@ -269,6 +336,18 @@ const Dashboard = () => {
           <div className="data-row">
             <span className="data-label"><Activity size={14} style={{display:'inline', marginRight:'4px'}}/> Tx Volume</span>
             <span className="data-value">{activeUser.mockData.tx}</span>
+          </div>
+
+          {/* AI LLM Inference Insights */}
+          <div style={{ flex: 1, marginTop: '2rem' }}>
+            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1rem 0' }}>
+              <TerminalSquare size={16} color="var(--neon-purple)" /> TEE LLM Inference
+            </h4>
+            <div className="ai-insights">
+              {displayedAiText}
+              {(score > 0 && activeUser.aiAnalysis) && <span className="ai-cursor"></span>}
+              {(score === 0 || !activeUser.aiAnalysis) && <span style={{opacity: 0.5}}>Waiting for computation...</span>}
+            </div>
           </div>
         </div>
 
@@ -307,38 +386,38 @@ const Dashboard = () => {
             disabled={!account || isCalculating || isViewingDemo}
           >
             {isCalculating ? <RefreshCw className="lucide-spin" /> : <Zap />}
-            {isViewingDemo ? 'Connect to Compute' : (isCalculating ? 'Computing in Enclave...' : 'Calculate My Private Score')}
+            {isViewingDemo ? 'Connect Wallet to Compute' : (isCalculating ? 'Computing in Enclave...' : 'Calculate My Private Score')}
           </button>
         </div>
 
         {/* Right Column: TEE Process */}
         <div className="glass-panel">
           <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Cpu size={20} color="var(--neon-purple)"/> TEE Verification
+            <Cpu size={20} color="var(--neon-purple)"/> Verification Steps
           </h3>
           
           <div style={{ marginTop: '2rem' }}>
             <div className={`step-item ${(calcStep >= 1 || score > 0) ? 'active' : ''} ${calcStep > 1 || score > 0 ? 'completed' : ''}`}>
               <div className="step-icon"><Database size={16} /></div>
               <div>
-                <div style={{ fontWeight: 600 }}>1. Fetch Data</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Via HTTP Precompile</div>
+                <div style={{ fontWeight: 600 }}>1. Fetch Private Data</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Via Ritual HTTP Precompile</div>
               </div>
             </div>
             
             <div className={`step-item ${(calcStep >= 2 || score > 0) ? 'active' : ''} ${calcStep > 2 || score > 0 ? 'completed' : ''}`}>
               <div className="step-icon"><Cpu size={16} /></div>
               <div>
-                <div style={{ fontWeight: 600 }}>2. Evaluation</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Ritual LLM in Enclave</div>
+                <div style={{ fontWeight: 600 }}>2. LLM Evaluation</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Run model inside Enclave</div>
               </div>
             </div>
 
             <div className={`step-item ${(calcStep >= 3 || score > 0) ? 'active' : ''} ${calcStep > 3 || score > 0 ? 'completed' : ''}`}>
               <div className="step-icon"><Award size={16} /></div>
               <div>
-                <div style={{ fontWeight: 600 }}>3. Certificate</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Mint Soulbound NFT</div>
+                <div style={{ fontWeight: 600 }}>3. Attestation & Mint</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Generate ERC-721 Certificate</div>
               </div>
             </div>
           </div>
@@ -363,6 +442,17 @@ const Dashboard = () => {
         </div>
 
       </motion.div>
+
+      {/* TEE Node Status Badge */}
+      <div className="tee-status">
+        <div className={`status-dot ${isCalculating ? 'computing' : ''}`}></div>
+        <div>
+          <div style={{ fontWeight: 'bold', color: isCalculating ? 'var(--neon-purple)' : 'var(--neon-green)' }}>
+            {isCalculating ? 'ENCLAVE COMPUTING' : 'ENCLAVE SECURE'}
+          </div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Ritual Testnet • ID 1979</div>
+        </div>
+      </div>
       
       <style>{`
         .lucide-spin { animation: spin 2s linear infinite; }
