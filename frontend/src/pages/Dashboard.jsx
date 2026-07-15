@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ethers } from 'ethers';
-import { motion } from 'framer-motion';
-import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, Users, LogOut, TerminalSquare, Home, BarChart2, Search, TrendingUp, Network } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, Users, LogOut, TerminalSquare, Home, BarChart2, Search, TrendingUp, Network, Server } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
 import ForceGraph2D from 'react-force-graph-2d';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 
 const SCORE_CONTRACT_ADDRESS = "0x5320d14E4a86deF51723A806A38947498Ea09261";
 const AGENT_CONTRACT_ADDRESS = "0x409F997461874371233154402cd106e3c3d37184";
@@ -20,26 +21,32 @@ const agentAbi = [
   "function mockMode() view returns (bool)"
 ];
 
+const RITUAL_MODELS = [
+  { id: 'llama-3-8b', name: 'Ritual-Llama-3 (Balanced)', hash: '0x8f3c...9a12' },
+  { id: 'mistral-7b', name: 'Mistral-7B-DeFi-Expert', hash: '0x2b1e...f4cc' },
+  { id: 'grok-alpha', name: 'Grok-Alpha (Social)', hash: '0x5d9a...1b8e' }
+];
+
 const TRENDING_PROFILES = [
   { 
     name: "vitalik.eth", 
     address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", 
     mockData: { age: "8.2 Years", commits: "12,450", social: "Legendary", tx: "15,230 ETH", expectedScore: 950 },
-    metrics: { onChain: 99, social: 99, financial: 98 },
+    metrics: { onChain: 99, social: 99, financial: 98, nft: 80, sybilScore: 99 },
     aiAnalysis: "LLM Analysis: Verified Ethereum co-founder. Massive on-chain footprint. Exceptional social reputation and developer activity. Risk profile: Zero."
   },
   { 
     name: "0xDefiWhale", 
     address: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", 
     mockData: { age: "4.5 Years", commits: "340", social: "High", tx: "3,420 ETH", expectedScore: 820 },
-    metrics: { onChain: 95, social: 70, financial: 90 },
+    metrics: { onChain: 95, social: 70, financial: 90, nft: 40, sybilScore: 85 },
     aiAnalysis: "LLM Analysis: High volume DeFi power user. Consistent liquidity provider. Moderate developer activity. Risk profile: Very Low."
   },
   { 
     name: "0xAirdropHunter", 
     address: "0x1111111111111111111111111111111111111111", 
     mockData: { age: "0.5 Years", commits: "12", social: "Low", tx: "2.1 ETH", expectedScore: 510 },
-    metrics: { onChain: 45, social: 20, financial: 30 },
+    metrics: { onChain: 45, social: 20, financial: 30, nft: 10, sybilScore: 30 },
     aiAnalysis: "LLM Analysis: High frequency of low-value transactions across multiple chains. Typical sybil pattern detected. Risk profile: High."
   }
 ];
@@ -58,11 +65,9 @@ const generateGraphData = (seedName) => {
   const protocols = ['Uniswap', 'Aave', 'Compound', 'OpenSea', 'Blur', 'Lido', 'Maker'];
   
   protocols.forEach((p, i) => {
-    // Add protocol node
     nodes.push({ id: p, name: p, val: 5, color: '#8B5CF6' });
     links.push({ source: 'wallet', target: p });
     
-    // Add sub-interactions randomly
     if (Math.random() > 0.3) {
       const subId = `${p}_pool_${i}`;
       nodes.push({ id: subId, name: `${p} Pool`, val: 3, color: '#00B8FF' });
@@ -93,11 +98,36 @@ const Dashboard = () => {
   const [activeUser, setActiveUser] = useState(TRENDING_PROFILES[0]);
   const [isViewingDemo, setIsViewingDemo] = useState(true);
 
-  const [displayedAiText, setDisplayedAiText] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   
   const [graphData, setGraphData] = useState(() => generateGraphData(TRENDING_PROFILES[0].name));
+  
+  const [selectedModel, setSelectedModel] = useState(RITUAL_MODELS[0]);
+  const [terminalLogs, setTerminalLogs] = useState([]);
+  const [liveNodes, setLiveNodes] = useState([]);
+  
+  const terminalRef = useRef(null);
+
+  // Auto-scroll terminal
+  useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+    }
+  }, [terminalLogs]);
+
+  // Mock live network feed
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newAttestation = {
+        id: Math.random().toString(36).substring(2, 10),
+        node: "0x" + Math.random().toString(16).substring(2, 6) + "..." + Math.random().toString(16).substring(2, 6),
+        time: `${Math.floor(Math.random() * 50 + 10)}ms`
+      };
+      setLiveNodes(prev => [newAttestation, ...prev].slice(0, 5));
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const checkPersistedWallet = async () => {
@@ -132,13 +162,18 @@ const Dashboard = () => {
         
         if (isViewingDemo) {
           fetchUserData(TRENDING_PROFILES[0].address, pProvider, TRENDING_PROFILES[0]);
+          setTerminalLogs([
+            `[SYSTEM] Connected to Ritual Network (ChainID: ${CHAIN_ID})`,
+            `[TEE] Loaded previous inference for ${TRENDING_PROFILES[0].address}`,
+            `[RESULT] ${TRENDING_PROFILES[0].aiAnalysis}`
+          ]);
         }
       } catch (err) {
         console.error("Public RPC Failed:", err);
       }
     };
     init();
-  }, [isViewingDemo]);
+  }, []); // Run once
 
   useEffect(() => {
     if (score > 0) {
@@ -158,21 +193,6 @@ const Dashboard = () => {
       setDisplayedScore(0);
     }
   }, [score]);
-
-  useEffect(() => {
-    if (activeUser.aiAnalysis && score > 0) {
-      let i = 0;
-      setDisplayedAiText("");
-      const typingTimer = setInterval(() => {
-        setDisplayedAiText(prev => prev + activeUser.aiAnalysis.charAt(i));
-        i++;
-        if (i >= activeUser.aiAnalysis.length) clearInterval(typingTimer);
-      }, 20);
-      return () => clearInterval(typingTimer);
-    } else {
-      setDisplayedAiText("");
-    }
-  }, [activeUser, score]);
 
   const fetchUserData = async (targetAddress, targetProvider, userProfile) => {
     try {
@@ -231,11 +251,45 @@ const Dashboard = () => {
       name: "Your Wallet",
       address: address,
       mockData: { age: "?", commits: "?", social: "?", tx: "?" },
-      metrics: { onChain: 0, social: 0, financial: 0 },
+      metrics: { onChain: 0, social: 0, financial: 0, nft: 0, sybilScore: 0 },
       aiAnalysis: ""
     });
     setGraphData(generateGraphData("Your Wallet"));
     fetchUserData(address, browserProvider, null);
+    setTerminalLogs([
+      `[SYSTEM] Connected to wallet: ${address}`,
+      `[INFO] Awaiting calculation command...`
+    ]);
+  };
+
+  const simulateTerminalOutput = (analysisStr) => {
+    const logs = [
+      `[INFO] Initializing Secure Enclave...`,
+      `[AUTH] Node verified cryptographic signature.`,
+      `[PULL] Fetching on-chain historical data for ${activeUser.address.substring(0, 10)}...`,
+      `[TEE] Encrypting payload into memory...`,
+      `[MODEL] Booting ${selectedModel.name} (Hash: ${selectedModel.hash})...`,
+      `[COMPUTE] Executing LLM inference...`,
+      `[COMPUTE] Analyzing DeFi interactions...`,
+      `[COMPUTE] Assessing social graphs and sybil resistance...`,
+      `[ATTESTATION] Generating Zero-Knowledge Proof for result...`,
+      `[RESULT] ${analysisStr}`,
+      `[SYSTEM] Connection closed. Proof submitted on-chain.`
+    ];
+    
+    setTerminalLogs([]);
+    let currentLog = 0;
+    
+    const pushLog = () => {
+      if (currentLog < logs.length) {
+        setTerminalLogs(prev => [...prev, logs[currentLog]]);
+        currentLog++;
+        const nextDelay = currentLog === logs.length - 1 ? 100 : Math.random() * 400 + 100;
+        setTimeout(pushLog, nextDelay);
+      }
+    };
+    
+    pushLog();
   };
 
   const calculateScoreFlow = async () => {
@@ -247,6 +301,9 @@ const Dashboard = () => {
       
       const signer = await provider.getSigner();
       const agentContract = new ethers.Contract(AGENT_CONTRACT_ADDRESS, agentAbi, signer);
+      
+      const analysisStr = "LLM Analysis: Verified human identity. Healthy on-chain interaction with DeFi protocols. Github history indicates active developer. Excellent risk profile.";
+      simulateTerminalOutput(analysisStr);
       
       setTimeout(() => setCalcStep(2), 2000); 
       
@@ -260,11 +317,10 @@ const Dashboard = () => {
         setIsCalculating(false);
         setCalcStep(0);
         
-        const analysisStr = "LLM Analysis: Verified human identity. Healthy on-chain interaction with DeFi protocols. Github history indicates active developer. Excellent risk profile.";
         setActiveUser(prev => ({
           ...prev,
           mockData: { age: "2.1 Years", commits: "840", social: "Good", tx: "34 ETH" },
-          metrics: { onChain: 88, social: 75, financial: 85 },
+          metrics: { onChain: 88, social: 75, financial: 85, nft: 60, sybilScore: 90 },
           aiAnalysis: analysisStr
         }));
         
@@ -275,6 +331,7 @@ const Dashboard = () => {
       console.error(err);
       setIsCalculating(false);
       setCalcStep(0);
+      setTerminalLogs(prev => [...prev, `[ERROR] Transaction failed or rejected.`]);
     }
   };
 
@@ -291,35 +348,36 @@ const Dashboard = () => {
     setScore(0);
     setCalcStep(1);
     
-    // Simulate TEE loading process
+    let targetUser = predefinedUser;
+    if (!targetUser) {
+      targetUser = {
+        name: searchInput.length > 20 ? "Searched Wallet" : searchInput,
+        address: searchInput.length > 20 ? searchInput : "0x" + Math.random().toString(16).substr(2, 40),
+        mockData: { 
+          age: (Math.random() * 5 + 0.1).toFixed(1) + " Years", 
+          commits: Math.floor(Math.random() * 500).toString(), 
+          social: ["Low", "Neutral", "Good"][Math.floor(Math.random() * 3)], 
+          tx: (Math.random() * 100).toFixed(1) + " ETH", 
+          expectedScore: Math.floor(Math.random() * 400 + 400) 
+        },
+        metrics: { 
+          onChain: Math.floor(Math.random() * 100), 
+          social: Math.floor(Math.random() * 100), 
+          financial: Math.floor(Math.random() * 100),
+          nft: Math.floor(Math.random() * 100),
+          sybilScore: Math.floor(Math.random() * 100)
+        },
+        aiAnalysis: "LLM Analysis: Wallet data fetched and analyzed via Enclave. Behavior appears normal with mixed signals on social presence."
+      };
+    }
+    setActiveUser(targetUser);
+    
+    simulateTerminalOutput(targetUser.aiAnalysis);
+    
     setTimeout(() => setCalcStep(2), 800);
     setTimeout(() => setCalcStep(3), 1600);
     
     setTimeout(() => {
-      let targetUser = predefinedUser;
-      
-      // If user typed a random address, generate a random profile
-      if (!targetUser) {
-        targetUser = {
-          name: searchInput.length > 20 ? "Searched Wallet" : searchInput,
-          address: searchInput.length > 20 ? searchInput : "0x" + Math.random().toString(16).substr(2, 40),
-          mockData: { 
-            age: (Math.random() * 5 + 0.1).toFixed(1) + " Years", 
-            commits: Math.floor(Math.random() * 500).toString(), 
-            social: ["Low", "Neutral", "Good"][Math.floor(Math.random() * 3)], 
-            tx: (Math.random() * 100).toFixed(1) + " ETH", 
-            expectedScore: Math.floor(Math.random() * 400 + 400) 
-          },
-          metrics: { 
-            onChain: Math.floor(Math.random() * 100), 
-            social: Math.floor(Math.random() * 100), 
-            financial: Math.floor(Math.random() * 100) 
-          },
-          aiAnalysis: "LLM Analysis: Wallet data fetched and analyzed via Enclave. Behavior appears normal with mixed signals on social presence."
-        };
-      }
-      
-      setActiveUser(targetUser);
       setGraphData(generateGraphData(targetUser.name));
       setIsSearching(false);
       setCalcStep(4);
@@ -331,12 +389,19 @@ const Dashboard = () => {
       }
       
       setTimeout(() => setCalcStep(0), 1000);
-      
-    }, 2400);
+    }, 3500);
   };
 
   const circumference = 2 * Math.PI * 110;
   const strokeDashoffset = circumference - (displayedScore / 850) * circumference;
+
+  const radarData = [
+    { subject: 'DeFi Volume', A: activeUser.metrics.financial, fullMark: 100 },
+    { subject: 'NFT Activity', A: activeUser.metrics.nft, fullMark: 100 },
+    { subject: 'Social Rep', A: activeUser.metrics.social, fullMark: 100 },
+    { subject: 'Dev Commits', A: activeUser.metrics.onChain, fullMark: 100 },
+    { subject: 'Trust/Sybil', A: activeUser.metrics.sybilScore, fullMark: 100 },
+  ];
 
   return (
     <>
@@ -347,11 +412,27 @@ const Dashboard = () => {
         </Link>
         
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginLeft: 'auto' }}>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+            <Cpu size={16} color="var(--neon-blue)" />
+            <select 
+              value={selectedModel.id} 
+              onChange={(e) => setSelectedModel(RITUAL_MODELS.find(m => m.id === e.target.value))}
+              style={{ background: 'transparent', color: 'white', border: 'none', outline: 'none', cursor: 'pointer' }}
+              disabled={isCalculating || isSearching}
+            >
+              {RITUAL_MODELS.map(m => (
+                <option key={m.id} value={m.id} style={{ background: '#0f172a' }}>{m.name}</option>
+              ))}
+            </select>
+          </div>
+
           <Link to="/">
             <button style={{ padding: '0.5rem 1rem' }}>
               <Home size={16} /> Home
             </button>
           </Link>
+
           {isViewingDemo ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--neon-blue)', background: 'rgba(0,184,255,0.1)', padding: '0.5rem 1rem', borderRadius: '12px' }}>
               <Search size={16} /> Explorer Mode
@@ -474,8 +555,8 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Data Inputs */}
-          <div className="glass-panel" style={{ flex: 1, position: 'relative' }}>
+          {/* Radar Chart Block */}
+          <div className="glass-panel" style={{ flex: 1, position: 'relative', minHeight: '300px' }}>
             {isSearching && (
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10, borderRadius: '24px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <RefreshCw className="lucide-spin" size={32} color="var(--neon-purple)" />
@@ -483,64 +564,32 @@ const Dashboard = () => {
             )}
             
             <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
-              <Database size={20} color="var(--neon-blue)"/> Wallet Analytics
+              <BarChart2 size={20} color="var(--neon-blue)"/> Radar Risk Profile
             </h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              Address: <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>{activeUser.address.substring(0,20)}...</span>
-            </p>
             
-            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '12px', marginTop: '1rem' }}>
+            <div style={{ width: '100%', height: '250px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                  <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                  <Radar name="Profile" dataKey="A" stroke="var(--neon-purple)" fill="var(--neon-purple)" fillOpacity={0.4} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
               <div className="data-row">
                 <span className="data-label"><Wallet size={14} style={{display:'inline', marginRight:'4px'}}/> Wallet Age</span>
                 <span className="data-value">{activeUser.mockData.age}</span>
               </div>
               <div className="data-row">
-                <span className="data-label"><Code size={14} style={{display:'inline', marginRight:'4px'}}/> Commits (1Y)</span>
+                <span className="data-label"><Code size={14} style={{display:'inline', marginRight:'4px'}}/> Commits</span>
                 <span className="data-value value-highlight">{activeUser.mockData.commits}</span>
-              </div>
-              <div className="data-row">
-                <span className="data-label"><Globe size={14} style={{display:'inline', marginRight:'4px'}}/> Social Rep</span>
-                <span className="data-value value-highlight">{activeUser.mockData.social}</span>
               </div>
               <div className="data-row">
                 <span className="data-label"><Activity size={14} style={{display:'inline', marginRight:'4px'}}/> Tx Volume</span>
                 <span className="data-value">{activeUser.mockData.tx}</span>
-              </div>
-            </div>
-
-            <div style={{ marginTop: '2rem' }}>
-              <h4 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <BarChart2 size={16} /> Data Sources Breakdown
-              </h4>
-              
-              <div style={{ marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                  <span>On-chain Health</span>
-                  <span style={{ color: 'var(--neon-green)' }}>{activeUser.metrics.onChain}%</span>
-                </div>
-                <div className="progress-container">
-                  <div className="progress-fill" style={{ width: `${(score > 0) ? activeUser.metrics.onChain : 0}%`, background: 'var(--neon-green)' }}></div>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                  <span>Social Reputation</span>
-                  <span style={{ color: 'var(--neon-blue)' }}>{activeUser.metrics.social}%</span>
-                </div>
-                <div className="progress-container">
-                  <div className="progress-fill" style={{ width: `${(score > 0) ? activeUser.metrics.social : 0}%`, background: 'var(--neon-blue)' }}></div>
-                </div>
-              </div>
-
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                  <span>Financial Capacity</span>
-                  <span style={{ color: 'var(--neon-purple)' }}>{activeUser.metrics.financial}%</span>
-                </div>
-                <div className="progress-container">
-                  <div className="progress-fill" style={{ width: `${(score > 0) ? activeUser.metrics.financial : 0}%`, background: 'var(--neon-purple)' }}></div>
-                </div>
               </div>
             </div>
           </div>
@@ -549,7 +598,7 @@ const Dashboard = () => {
         {/* Right Column: Score & AI */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2rem', flex: 1 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2rem' }}>
             
             {/* Main Score Area */}
             <div className="glass-panel" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
@@ -593,67 +642,105 @@ const Dashboard = () => {
               )}
             </div>
 
-            {/* Verification Steps */}
-            <div className="glass-panel">
-              <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
-                <Cpu size={20} color="var(--neon-purple)"/> Verification Steps
-              </h3>
-              
-              <div style={{ marginTop: '1.5rem' }}>
-                <div className={`step-item ${(calcStep >= 1 || score > 0) ? 'active' : ''} ${calcStep > 1 || score > 0 ? 'completed' : ''}`}>
-                  <div className="step-icon"><Database size={16} /></div>
-                  <div>
-                    <div style={{ fontWeight: 600 }}>1. Fetch Private Data</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Via Ritual HTTP Precompile</div>
-                  </div>
-                </div>
+            {/* Verification Steps & Live Network */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="glass-panel" style={{ flex: 1 }}>
+                <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', fontSize: '1.1rem' }}>
+                  <Cpu size={18} color="var(--neon-purple)"/> Verification
+                </h3>
                 
-                <div className={`step-item ${(calcStep >= 2 || score > 0) ? 'active' : ''} ${calcStep > 2 || score > 0 ? 'completed' : ''}`}>
-                  <div className="step-icon"><Cpu size={16} /></div>
-                  <div>
-                    <div style={{ fontWeight: 600 }}>2. LLM Evaluation</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Run model inside Enclave</div>
+                <div style={{ marginTop: '1rem' }}>
+                  <div className={`step-item ${(calcStep >= 1 || score > 0) ? 'active' : ''} ${calcStep > 1 || score > 0 ? 'completed' : ''}`} style={{ marginBottom: '0.8rem', padding: '0.5rem' }}>
+                    <div className="step-icon" style={{ width: '24px', height: '24px' }}><Database size={14} /></div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>Private Fetch</div>
+                    </div>
+                  </div>
+                  
+                  <div className={`step-item ${(calcStep >= 2 || score > 0) ? 'active' : ''} ${calcStep > 2 || score > 0 ? 'completed' : ''}`} style={{ marginBottom: '0.8rem', padding: '0.5rem' }}>
+                    <div className="step-icon" style={{ width: '24px', height: '24px' }}><Cpu size={14} /></div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>TEE LLM</div>
+                    </div>
+                  </div>
+
+                  <div className={`step-item ${(calcStep >= 3 || score > 0) ? 'active' : ''} ${calcStep > 3 || score > 0 ? 'completed' : ''}`} style={{ padding: '0.5rem' }}>
+                    <div className="step-icon" style={{ width: '24px', height: '24px' }}><Award size={14} /></div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>ZKP Mint</div>
+                    </div>
                   </div>
                 </div>
 
-                <div className={`step-item ${(calcStep >= 3 || score > 0) ? 'active' : ''} ${calcStep > 3 || score > 0 ? 'completed' : ''}`}>
-                  <div className="step-icon"><Award size={16} /></div>
-                  <div>
-                    <div style={{ fontWeight: 600 }}>3. Attestation & Mint</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Generate ERC-721 Certificate</div>
-                  </div>
-                </div>
+                {hasCert && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    style={{ 
+                      marginTop: '1rem', padding: '0.5rem', 
+                      background: 'rgba(0,255,163,0.1)', border: '1px solid var(--neon-green)',
+                      borderRadius: '8px', display: 'flex', gap: '0.5rem', alignItems: 'center'
+                    }}
+                  >
+                    <CheckCircle color="var(--neon-green)" size={16} />
+                    <div style={{ fontSize: '0.8rem', color: 'var(--neon-green)' }}>Verified Soulbound</div>
+                  </motion.div>
+                )}
               </div>
 
-              {hasCert && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                  style={{ 
-                    marginTop: '2rem', padding: '1rem', 
-                    background: 'rgba(0,255,163,0.1)', border: '1px solid var(--neon-green)',
-                    borderRadius: '12px', display: 'flex', gap: '0.5rem', alignItems: 'center'
-                  }}
-                >
-                  <CheckCircle color="var(--neon-green)" />
-                  <div>
-                    <div style={{ fontWeight: 600, color: 'var(--neon-green)' }}>Verified Certificate</div>
-                    <div style={{ fontSize: '0.8rem' }}>ERC-721 Soulbound Minted</div>
-                  </div>
-                </motion.div>
-              )}
+              {/* Live Network Feed */}
+              <div className="glass-panel" style={{ flex: 1, overflow: 'hidden' }}>
+                <h4 style={{ margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
+                  <Server size={14} color="var(--neon-blue)" /> Live Attestations
+                </h4>
+                <div style={{ fontSize: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <AnimatePresence>
+                    {liveNodes.map(item => (
+                      <motion.div 
+                        key={item.id}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0 }}
+                        style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.2rem' }}
+                      >
+                        <span style={{ color: 'var(--text-secondary)' }}>Node {item.node}</span>
+                        <span style={{ color: 'var(--neon-green)' }}>{item.time}</span>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              </div>
 
             </div>
           </div>
 
-          {/* AI Inference Block spanning Right Column */}
-          <div className="glass-panel">
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1rem 0' }}>
-              <TerminalSquare size={16} color="var(--neon-purple)" /> TEE LLM Inference Log
+          {/* AI Inference Block - TEE Terminal */}
+          <div className="glass-panel" style={{ background: '#0a0a0a', border: '1px solid #333', flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1rem 0', color: 'var(--text-primary)', fontFamily: 'monospace' }}>
+              <TerminalSquare size={16} /> TEE ENCLAVE TERMINAL
+              <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Model: {selectedModel.id}</span>
             </h4>
-            <div className="ai-insights" style={{ minHeight: '80px', fontSize: '1rem' }}>
-              {displayedAiText}
-              {(score > 0 && activeUser.aiAnalysis && !isSearching) && <span className="ai-cursor"></span>}
-              {(score === 0 || isSearching) && <span style={{opacity: 0.5}}>Waiting for computation...</span>}
+            <div 
+              className="ai-insights" 
+              ref={terminalRef}
+              style={{ 
+                flex: 1, 
+                fontSize: '0.85rem', 
+                fontFamily: 'monospace', 
+                color: 'var(--neon-green)', 
+                background: 'transparent',
+                overflowY: 'auto',
+                maxHeight: '200px',
+                padding: '0.5rem'
+              }}
+            >
+              {terminalLogs.map((log, i) => (
+                <div key={i} style={{ marginBottom: '0.3rem', opacity: i === terminalLogs.length - 1 ? 1 : 0.7 }}>
+                  {log.includes('[ERROR]') ? <span style={{color: '#ff4444'}}>{log}</span> :
+                   log.includes('[RESULT]') ? <span style={{color: 'var(--neon-purple)', fontWeight: 'bold'}}>{log}</span> :
+                   log}
+                </div>
+              ))}
+              {(isCalculating || isSearching) && <span className="ai-cursor">_</span>}
             </div>
           </div>
 
@@ -716,6 +803,15 @@ const Dashboard = () => {
       <style>{`
         .lucide-spin { animation: spin 2s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        .ai-cursor {
+          display: inline-block;
+          width: 8px;
+          height: 15px;
+          background-color: var(--neon-green);
+          animation: blink 1s step-end infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
       `}</style>
     </>
   );
