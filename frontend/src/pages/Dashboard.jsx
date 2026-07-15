@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ethers } from 'ethers';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, Users, LogOut, TerminalSquare, Home, BarChart2, Search, TrendingUp, Network, Server } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, LogOut, TerminalSquare, Home, BarChart2, Search, TrendingUp, Network, Server, Volume2, VolumeX, Moon, Sun, ArrowRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import ForceGraph2D from 'react-force-graph-2d';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+import { playClickSound, playBlipSound, playSuccessSound, setAudioEnabled, getAudioEnabled } from '../utils/audio';
 
 const SCORE_CONTRACT_ADDRESS = "0x5320d14E4a86deF51723A806A38947498Ea09261";
 const AGENT_CONTRACT_ADDRESS = "0x409F997461874371233154402cd106e3c3d37184";
@@ -27,7 +28,7 @@ const RITUAL_MODELS = [
   { id: 'grok-alpha', name: 'Grok-Alpha (Social)', hash: '0x5d9a...1b8e' }
 ];
 
-const TRENDING_PROFILES = [
+export const TRENDING_PROFILES = [
   { 
     name: "vitalik.eth", 
     address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", 
@@ -67,21 +68,18 @@ const generateGraphData = (seedName) => {
   protocols.forEach((p, i) => {
     nodes.push({ id: p, name: p, val: 5, color: '#8B5CF6' });
     links.push({ source: 'wallet', target: p });
-    
     if (Math.random() > 0.3) {
       const subId = `${p}_pool_${i}`;
       nodes.push({ id: subId, name: `${p} Pool`, val: 3, color: '#00B8FF' });
       links.push({ source: p, target: subId });
-      if (Math.random() > 0.5) {
-        links.push({ source: 'wallet', target: subId });
-      }
+      if (Math.random() > 0.5) links.push({ source: 'wallet', target: subId });
     }
   });
-
   return { nodes, links };
 };
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [provider, setProvider] = useState(null);
   const [publicProvider, setPublicProvider] = useState(null);
   const [account, setAccount] = useState("");
@@ -92,7 +90,6 @@ const Dashboard = () => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [calcStep, setCalcStep] = useState(0); 
   
-  const [isMockMode, setIsMockMode] = useState(true);
   const [displayedScore, setDisplayedScore] = useState(0);
   
   const [activeUser, setActiveUser] = useState(TRENDING_PROFILES[0]);
@@ -107,16 +104,36 @@ const Dashboard = () => {
   const [terminalLogs, setTerminalLogs] = useState([]);
   const [liveNodes, setLiveNodes] = useState([]);
   
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+  const [audioOn, setAudioOn] = useState(true);
+
   const terminalRef = useRef(null);
 
-  // Auto-scroll terminal
+  useEffect(() => {
+    document.body.className = theme === 'light' ? 'light-theme' : '';
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    setAudioEnabled(audioOn);
+  }, [audioOn]);
+
+  const toggleTheme = () => {
+    playClickSound();
+    setTheme(theme === 'light' ? 'dark' : 'light');
+  };
+  
+  const toggleAudio = () => {
+    playClickSound();
+    setAudioOn(!audioOn);
+  };
+
   useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
   }, [terminalLogs]);
 
-  // Mock live network feed
   useEffect(() => {
     const interval = setInterval(() => {
       const newAttestation = {
@@ -140,12 +157,8 @@ const Dashboard = () => {
             setProvider(browserProvider);
             setAccount(accounts[0]);
             switchToMyWallet(accounts[0], browserProvider);
-          } else {
-            localStorage.removeItem("ritual_connected_account");
           }
-        } catch (err) {
-          console.error("Failed to restore wallet session");
-        }
+        } catch (err) {}
       }
     };
     checkPersistedWallet();
@@ -156,10 +169,6 @@ const Dashboard = () => {
       try {
         const pProvider = new ethers.JsonRpcProvider(RITUAL_RPC);
         setPublicProvider(pProvider);
-        const agentContract = new ethers.Contract(AGENT_CONTRACT_ADDRESS, agentAbi, pProvider);
-        const mode = await agentContract.mockMode();
-        setIsMockMode(mode);
-        
         if (isViewingDemo) {
           fetchUserData(TRENDING_PROFILES[0].address, pProvider, TRENDING_PROFILES[0]);
           setTerminalLogs([
@@ -168,12 +177,10 @@ const Dashboard = () => {
             `[RESULT] ${TRENDING_PROFILES[0].aiAnalysis}`
           ]);
         }
-      } catch (err) {
-        console.error("Public RPC Failed:", err);
-      }
+      } catch (err) {}
     };
     init();
-  }, []); // Run once
+  }, []); 
 
   useEffect(() => {
     if (score > 0) {
@@ -198,36 +205,21 @@ const Dashboard = () => {
     try {
       const scoreContract = new ethers.Contract(SCORE_CONTRACT_ADDRESS, scoreAbi, targetProvider);
       let currentScore = await scoreContract.creditScores(targetAddress);
-      
-      if (currentScore == 0 && isViewingDemo && userProfile) {
-        currentScore = userProfile.expectedScore; 
-      }
-      
+      if (currentScore == 0 && isViewingDemo && userProfile) currentScore = userProfile.expectedScore; 
       setScore(Number(currentScore));
-      
       const certId = await scoreContract.soulboundCertificates(targetAddress);
       setHasCert(certId > 0 || (isViewingDemo && currentScore >= 700));
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) {}
   };
 
   const connectWallet = async () => {
+    playClickSound();
     if (window.ethereum) {
       try {
         const browserProvider = new ethers.BrowserProvider(window.ethereum);
         await browserProvider.send("eth_requestAccounts", []);
         const signer = await browserProvider.getSigner();
         const address = await signer.getAddress();
-        
-        const network = await browserProvider.getNetwork();
-        if (Number(network.chainId) !== CHAIN_ID) {
-          await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: ethers.toBeHex(CHAIN_ID) }],
-          });
-        }
-        
         localStorage.setItem("ritual_connected_account", address);
         setProvider(browserProvider);
         setAccount(address);
@@ -239,6 +231,7 @@ const Dashboard = () => {
   };
 
   const disconnectWallet = () => {
+    playClickSound();
     localStorage.removeItem("ritual_connected_account");
     setAccount("");
     setProvider(null);
@@ -283,16 +276,19 @@ const Dashboard = () => {
     const pushLog = () => {
       if (currentLog < logs.length) {
         setTerminalLogs(prev => [...prev, logs[currentLog]]);
+        playBlipSound();
         currentLog++;
         const nextDelay = currentLog === logs.length - 1 ? 100 : Math.random() * 400 + 100;
         setTimeout(pushLog, nextDelay);
+      } else {
+        playSuccessSound();
       }
     };
-    
     pushLog();
   };
 
   const calculateScoreFlow = async () => {
+    playClickSound();
     if (!account || !provider || isViewingDemo) return;
     try {
       setIsCalculating(true);
@@ -306,9 +302,7 @@ const Dashboard = () => {
       simulateTerminalOutput(analysisStr);
       
       setTimeout(() => setCalcStep(2), 2000); 
-      
       const tx = await agentContract.calculateScore(account);
-      
       setCalcStep(3); 
       await tx.wait();
       
@@ -316,14 +310,12 @@ const Dashboard = () => {
       setTimeout(() => {
         setIsCalculating(false);
         setCalcStep(0);
-        
         setActiveUser(prev => ({
           ...prev,
           mockData: { age: "2.1 Years", commits: "840", social: "Good", tx: "34 ETH" },
           metrics: { onChain: 88, social: 75, financial: 85, nft: 60, sybilScore: 90 },
           aiAnalysis: analysisStr
         }));
-        
         fetchUserData(account, provider, null);
       }, 1000);
       
@@ -341,6 +333,7 @@ const Dashboard = () => {
   };
 
   const handleSearch = (predefinedUser = null) => {
+    playClickSound();
     if (!searchInput && !predefinedUser) return;
     
     setIsViewingDemo(true);
@@ -381,13 +374,11 @@ const Dashboard = () => {
       setGraphData(generateGraphData(targetUser.name));
       setIsSearching(false);
       setCalcStep(4);
-      
       if (publicProvider) {
         fetchUserData(targetUser.address, publicProvider, targetUser);
       } else {
         setScore(targetUser.expectedScore);
       }
-      
       setTimeout(() => setCalcStep(0), 1000);
     }, 3500);
   };
@@ -408,27 +399,35 @@ const Dashboard = () => {
       <header style={{ display: 'flex', alignItems: 'center' }}>
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Shield color="var(--neon-purple)" size={28} />
-          <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>RitualPrivScore</span>
+          <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)' }}>RitualPrivScore</span>
         </Link>
         
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginLeft: 'auto' }}>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-card)', padding: '0.5rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
             <Cpu size={16} color="var(--neon-blue)" />
             <select 
               value={selectedModel.id} 
-              onChange={(e) => setSelectedModel(RITUAL_MODELS.find(m => m.id === e.target.value))}
-              style={{ background: 'transparent', color: 'white', border: 'none', outline: 'none', cursor: 'pointer' }}
+              onChange={(e) => { playClickSound(); setSelectedModel(RITUAL_MODELS.find(m => m.id === e.target.value)); }}
+              style={{ background: 'transparent', color: 'var(--text-primary)', border: 'none', outline: 'none', cursor: 'pointer' }}
               disabled={isCalculating || isSearching}
             >
               {RITUAL_MODELS.map(m => (
-                <option key={m.id} value={m.id} style={{ background: '#0f172a' }}>{m.name}</option>
+                <option key={m.id} value={m.id} style={{ background: 'var(--bg-dark)' }}>{m.name}</option>
               ))}
             </select>
           </div>
 
+          <button onClick={toggleTheme} style={{ padding: '0.5rem', borderRadius: '50%' }}>
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
+          
+          <button onClick={toggleAudio} style={{ padding: '0.5rem', borderRadius: '50%' }}>
+            {audioOn ? <Volume2 size={18} /> : <VolumeX size={18} />}
+          </button>
+
           <Link to="/">
-            <button style={{ padding: '0.5rem 1rem' }}>
+            <button style={{ padding: '0.5rem 1rem' }} onClick={playClickSound}>
               <Home size={16} /> Home
             </button>
           </Link>
@@ -445,19 +444,12 @@ const Dashboard = () => {
           
           {!account ? (
             <button onClick={connectWallet} className="primary">
-              <Wallet size={18} /> Connect Wallet
+              <Wallet size={18} /> Connect
             </button>
           ) : (
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              {isViewingDemo && (
-                 <button onClick={() => switchToMyWallet(account, provider)} style={{ borderColor: 'var(--neon-green)', color: 'var(--neon-green)' }}>
-                   View My Score
-                 </button>
-              )}
-              <button onClick={disconnectWallet} className="danger">
-                <LogOut size={18} /> Disconnect ({account.substring(0, 4)}...{account.substring(38)})
-              </button>
-            </div>
+            <button onClick={disconnectWallet} className="danger" style={{ padding: '0.5rem 1rem' }}>
+              <LogOut size={16} /> Disconnect ({account.substring(0, 4)}...)
+            </button>
           )}
         </div>
       </header>
@@ -514,12 +506,12 @@ const Dashboard = () => {
           
           {/* On-chain Graph */}
           <div className="glass-panel" style={{ position: 'relative', overflow: 'hidden', padding: 0, height: '300px' }}>
-            <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 10, display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0,0,0,0.5)', padding: '0.5rem 1rem', borderRadius: '50px', border: '1px solid var(--border-color)', backdropFilter: 'blur(5px)' }}>
+            <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 10, display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-card)', padding: '0.5rem 1rem', borderRadius: '50px', border: '1px solid var(--border-color)', backdropFilter: 'blur(5px)' }}>
               <Network size={16} color="var(--neon-purple)" />
               <span style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>On-chain Footprint</span>
             </div>
             {isSearching ? (
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--bg-card)', zIndex: 10, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <RefreshCw className="lucide-spin" size={32} color="var(--neon-purple)" />
               </div>
             ) : (
@@ -529,7 +521,7 @@ const Dashboard = () => {
                 height={300}
                 backgroundColor="transparent"
                 nodeRelSize={6}
-                linkColor={() => 'rgba(255,255,255,0.2)'}
+                linkColor={() => theme === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)'}
                 linkDirectionalParticles={2}
                 linkDirectionalParticleSpeed={0.01}
                 linkDirectionalParticleWidth={2}
@@ -538,17 +530,13 @@ const Dashboard = () => {
                   const label = node.name;
                   const fontSize = 12 / globalScale;
                   ctx.font = `${fontSize}px Sans-Serif`;
-
-                  // Draw node circle
                   ctx.fillStyle = node.color;
                   ctx.beginPath();
                   ctx.arc(node.x, node.y, node.val, 0, 2 * Math.PI, false);
                   ctx.fill();
-
-                  // Draw text
                   ctx.textAlign = 'center';
                   ctx.textBaseline = 'middle';
-                  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                  ctx.fillStyle = theme === 'light' ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)';
                   ctx.fillText(label, node.x, node.y + node.val + (fontSize));
                 }}
               />
@@ -558,7 +546,7 @@ const Dashboard = () => {
           {/* Radar Chart Block */}
           <div className="glass-panel" style={{ flex: 1, position: 'relative', minHeight: '300px' }}>
             {isSearching && (
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10, borderRadius: '24px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--bg-card)', zIndex: 10, borderRadius: '24px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <RefreshCw className="lucide-spin" size={32} color="var(--neon-purple)" />
               </div>
             )}
@@ -570,7 +558,7 @@ const Dashboard = () => {
             <div style={{ width: '100%', height: '250px' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-                  <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                  <PolarGrid stroke={theme === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'} />
                   <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
                   <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                   <Radar name="Profile" dataKey="A" stroke="var(--neon-purple)" fill="var(--neon-purple)" fillOpacity={0.4} />
@@ -587,10 +575,6 @@ const Dashboard = () => {
                 <span className="data-label"><Code size={14} style={{display:'inline', marginRight:'4px'}}/> Commits</span>
                 <span className="data-value value-highlight">{activeUser.mockData.commits}</span>
               </div>
-              <div className="data-row">
-                <span className="data-label"><Activity size={14} style={{display:'inline', marginRight:'4px'}}/> Tx Volume</span>
-                <span className="data-value">{activeUser.mockData.tx}</span>
-              </div>
             </div>
           </div>
         </div>
@@ -604,7 +588,7 @@ const Dashboard = () => {
             <div className="glass-panel" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
               <div className="circular-score" style={{ marginBottom: '2rem' }}>
                 <svg width="250" height="250" viewBox="0 0 250 250" style={{ transform: 'rotate(-90deg)' }}>
-                  <circle cx="125" cy="125" r="110" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="12" />
+                  <circle cx="125" cy="125" r="110" fill="none" stroke="var(--border-color)" strokeWidth="12" />
                   <motion.circle 
                     cx="125" cy="125" r="110" fill="none" 
                     stroke="url(#gradient)" 
@@ -637,8 +621,20 @@ const Dashboard = () => {
                   disabled={!account || isCalculating}
                 >
                   {isCalculating ? <RefreshCw className="lucide-spin" /> : <Zap />}
-                  {isCalculating ? 'Computing in Enclave...' : 'Calculate Private Score'}
+                  {isCalculating ? 'Computing in Enclave...' : 'Calculate Score'}
                 </button>
+              )}
+              
+              {/* Navigate to Details Button */}
+              {displayedScore > 0 && !isCalculating && !isSearching && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ marginTop: '1rem', width: '80%' }}>
+                  <button 
+                    style={{ width: '100%', borderColor: 'var(--neon-purple)', color: 'var(--neon-purple)' }}
+                    onClick={() => { playClickSound(); navigate(`/details/${activeUser.address}`, { state: { user: activeUser, score: displayedScore } }); }}
+                  >
+                    View Detailed Breakdown <ArrowRight size={16} />
+                  </button>
+                </motion.div>
               )}
             </div>
 
@@ -700,7 +696,7 @@ const Dashboard = () => {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0 }}
-                        style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.2rem' }}
+                        style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.2rem' }}
                       >
                         <span style={{ color: 'var(--text-secondary)' }}>Node {item.node}</span>
                         <span style={{ color: 'var(--neon-green)' }}>{item.time}</span>
@@ -714,7 +710,7 @@ const Dashboard = () => {
           </div>
 
           {/* AI Inference Block - TEE Terminal */}
-          <div className="glass-panel" style={{ background: '#0a0a0a', border: '1px solid #333', flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div className="glass-panel" style={{ background: 'var(--terminal-bg)', border: '1px solid var(--border-color)', flex: 1, display: 'flex', flexDirection: 'column' }}>
             <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1rem 0', color: 'var(--text-primary)', fontFamily: 'monospace' }}>
               <TerminalSquare size={16} /> TEE ENCLAVE TERMINAL
               <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Model: {selectedModel.id}</span>
@@ -746,45 +742,6 @@ const Dashboard = () => {
 
         </div>
 
-      </motion.div>
-
-      {/* Leaderboard Section */}
-      <motion.div 
-        className="glass-panel"
-        style={{ marginTop: '2rem' }}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <h3 style={{ marginTop: 0, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Award size={20} color="var(--neon-blue)" /> Recent TEE Attestations (Leaderboard)
-        </h3>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="leaderboard-table">
-            <thead>
-              <tr>
-                <th>Address</th>
-                <th>PrivScore</th>
-                <th>Reputation Rank</th>
-                <th>Time (Block)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {LEADERBOARD_DATA.map((item, index) => (
-                <tr key={index}>
-                  <td style={{ fontFamily: 'monospace' }}>{item.address}</td>
-                  <td style={{ fontWeight: 'bold' }}>{item.score}</td>
-                  <td>
-                    <span className={`rank-badge rank-${item.rank.toLowerCase()}`}>
-                      Class {item.rank}
-                    </span>
-                  </td>
-                  <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{item.time}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </motion.div>
 
       {/* TEE Node Status Badge */}

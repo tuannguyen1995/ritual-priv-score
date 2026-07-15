@@ -8,12 +8,28 @@
   --text-primary: #FFFFFF;
   --text-secondary: rgba(255, 255, 255, 0.6);
   --border-color: rgba(255, 255, 255, 0.08);
+  --terminal-bg: #0a0a0a;
 
   font-family: 'Inter', system-ui, sans-serif;
   line-height: 1.5;
   color-scheme: dark;
   color: var(--text-primary);
   background-color: var(--bg-dark);
+}
+
+.light-theme {
+  --bg-dark: #F0F4F8;
+  --bg-card: rgba(255, 255, 255, 0.7);
+  --neon-green: #00C853;
+  --neon-blue: #0091EA;
+  --neon-purple: #6200EA;
+  --neon-red: #D50000;
+  --text-primary: #1A202C;
+  --text-secondary: rgba(26, 32, 44, 0.7);
+  --border-color: rgba(0, 0, 0, 0.1);
+  --terminal-bg: #E2E8F0;
+  
+  color-scheme: light;
 }
 
 * {
