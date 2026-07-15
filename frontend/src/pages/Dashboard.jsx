@@ -110,7 +110,7 @@ const Dashboard = () => {
   const terminalRef = useRef(null);
 
   useEffect(() => {
-    document.body.className = theme === 'light' ? 'light-theme' : '';
+    document.documentElement.className = theme === 'light' ? 'light-theme' : '';
     localStorage.setItem('theme', theme);
   }, [theme]);
 

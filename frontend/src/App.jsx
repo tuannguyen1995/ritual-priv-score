@@ -6,6 +6,11 @@ import ScoreDetails from './pages/ScoreDetails';
 import './index.css';
 
 function App() {
+  React.useEffect(() => {
+    const theme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.className = theme === 'light' ? 'light-theme' : '';
+  }, []);
+
   return (
     <>
       <div className="bg-grid"></div>
