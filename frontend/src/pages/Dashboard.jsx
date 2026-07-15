@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { motion } from 'framer-motion';
-import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, Users, LogOut, TerminalSquare, Home, BarChart2 } from 'lucide-react';
+import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, Users, LogOut, TerminalSquare, Home, BarChart2, Search, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
 
@@ -19,35 +19,35 @@ const agentAbi = [
   "function mockMode() view returns (bool)"
 ];
 
-const DEMO_USERS = [
+const TRENDING_PROFILES = [
   { 
-    name: "Demo User A (High Rep)", 
+    name: "vitalik.eth", 
+    address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", 
+    mockData: { age: "8.2 Years", commits: "12,450", social: "Legendary", tx: "15,230 ETH", expectedScore: 950 },
+    metrics: { onChain: 99, social: 99, financial: 98 },
+    aiAnalysis: "LLM Analysis: Verified Ethereum co-founder. Massive on-chain footprint. Exceptional social reputation and developer activity. Risk profile: Zero."
+  },
+  { 
+    name: "0xDefiWhale", 
+    address: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", 
+    mockData: { age: "4.5 Years", commits: "340", social: "High", tx: "3,420 ETH", expectedScore: 820 },
+    metrics: { onChain: 95, social: 70, financial: 90 },
+    aiAnalysis: "LLM Analysis: High volume DeFi power user. Consistent liquidity provider. Moderate developer activity. Risk profile: Very Low."
+  },
+  { 
+    name: "0xAirdropHunter", 
     address: "0x1111111111111111111111111111111111111111", 
-    mockData: { age: "4.5 Years", commits: "3,450", social: "Excellent", tx: "120.5 ETH", expectedScore: 820 },
-    metrics: { onChain: 90, social: 85, financial: 95 },
-    aiAnalysis: "LLM Analysis: Strong on-chain history with significant Tx volume. Consistent github activity indicates high developer reputation. Low risk profile."
-  },
-  { 
-    name: "Demo User B (Average)", 
-    address: "0x2222222222222222222222222222222222222222", 
-    mockData: { age: "1.2 Years", commits: "120", social: "Neutral", tx: "5.2 ETH", expectedScore: 610 },
-    metrics: { onChain: 55, social: 50, financial: 60 },
-    aiAnalysis: "LLM Analysis: Moderate activity. Wallet is relatively young. Social reputation is neutral. Acceptable risk but lacks long-term track record."
-  },
-  { 
-    name: "Demo User C (Newbie)", 
-    address: "0x3333333333333333333333333333333333333333", 
-    mockData: { age: "0.1 Years", commits: "0", social: "None", tx: "0.1 ETH", expectedScore: 400 },
-    metrics: { onChain: 10, social: 0, financial: 15 },
-    aiAnalysis: "LLM Analysis: Sybil risk detected. Minimal on-chain footprint. No verifiable off-chain developer or social activity. High risk profile."
+    mockData: { age: "0.5 Years", commits: "12", social: "Low", tx: "2.1 ETH", expectedScore: 510 },
+    metrics: { onChain: 45, social: 20, financial: 30 },
+    aiAnalysis: "LLM Analysis: High frequency of low-value transactions across multiple chains. Typical sybil pattern detected. Risk profile: High."
   }
 ];
 
 const LEADERBOARD_DATA = [
-  { address: "0x7a2...3f1c", score: 890, rank: "S", time: "2 mins ago" },
-  { address: "0x111...1111", score: 820, rank: "A", time: "1 hour ago" },
-  { address: "0x9b4...2e8a", score: 715, rank: "A", time: "3 hours ago" },
-  { address: "0x222...2222", score: 610, rank: "B", time: "5 hours ago" },
+  { address: "vitalik.eth", score: 950, rank: "S", time: "2 mins ago" },
+  { address: "0x7a2...3f1c", score: 890, rank: "S", time: "1 hour ago" },
+  { address: "0x111...1111", score: 820, rank: "A", time: "3 hours ago" },
+  { address: "0x9b4...2e8a", score: 715, rank: "A", time: "5 hours ago" },
   { address: "0x333...3333", score: 400, rank: "C", time: "1 day ago" },
 ];
 
@@ -65,10 +65,12 @@ const Dashboard = () => {
   const [isMockMode, setIsMockMode] = useState(true);
   const [displayedScore, setDisplayedScore] = useState(0);
   
-  const [activeUser, setActiveUser] = useState(DEMO_USERS[0]);
+  const [activeUser, setActiveUser] = useState(TRENDING_PROFILES[0]);
   const [isViewingDemo, setIsViewingDemo] = useState(true);
 
   const [displayedAiText, setDisplayedAiText] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   
   useEffect(() => {
     const checkPersistedWallet = async () => {
@@ -102,7 +104,7 @@ const Dashboard = () => {
         setIsMockMode(mode);
         
         if (isViewingDemo) {
-          fetchUserData(DEMO_USERS[0].address, pProvider, DEMO_USERS[0]);
+          fetchUserData(TRENDING_PROFILES[0].address, pProvider, TRENDING_PROFILES[0]);
         }
       } catch (err) {
         console.error("Public RPC Failed:", err);
@@ -193,7 +195,7 @@ const Dashboard = () => {
     localStorage.removeItem("ritual_connected_account");
     setAccount("");
     setProvider(null);
-    selectDemoUser(DEMO_USERS[0]);
+    selectTrendingProfile(TRENDING_PROFILES[0]);
   };
 
   const switchToMyWallet = (address, browserProvider) => {
@@ -248,13 +250,60 @@ const Dashboard = () => {
     }
   };
 
-  const selectDemoUser = (user) => {
+  const selectTrendingProfile = (user) => {
+    setSearchInput(user.name);
+    handleSearch(user);
+  };
+
+  const handleSearch = (predefinedUser = null) => {
+    if (!searchInput && !predefinedUser) return;
+    
     setIsViewingDemo(true);
-    setActiveUser(user);
+    setIsSearching(true);
     setScore(0);
-    if (publicProvider) {
-      fetchUserData(user.address, publicProvider, user);
-    }
+    setCalcStep(1);
+    
+    // Simulate TEE loading process
+    setTimeout(() => setCalcStep(2), 800);
+    setTimeout(() => setCalcStep(3), 1600);
+    
+    setTimeout(() => {
+      let targetUser = predefinedUser;
+      
+      // If user typed a random address, generate a random profile
+      if (!targetUser) {
+        targetUser = {
+          name: searchInput.length > 20 ? "Searched Wallet" : searchInput,
+          address: searchInput.length > 20 ? searchInput : "0x" + Math.random().toString(16).substr(2, 40),
+          mockData: { 
+            age: (Math.random() * 5 + 0.1).toFixed(1) + " Years", 
+            commits: Math.floor(Math.random() * 500).toString(), 
+            social: ["Low", "Neutral", "Good"][Math.floor(Math.random() * 3)], 
+            tx: (Math.random() * 100).toFixed(1) + " ETH", 
+            expectedScore: Math.floor(Math.random() * 400 + 400) 
+          },
+          metrics: { 
+            onChain: Math.floor(Math.random() * 100), 
+            social: Math.floor(Math.random() * 100), 
+            financial: Math.floor(Math.random() * 100) 
+          },
+          aiAnalysis: "LLM Analysis: Wallet data fetched and analyzed via Enclave. Behavior appears normal with mixed signals on social presence."
+        };
+      }
+      
+      setActiveUser(targetUser);
+      setIsSearching(false);
+      setCalcStep(4);
+      
+      if (publicProvider) {
+        fetchUserData(targetUser.address, publicProvider, targetUser);
+      } else {
+        setScore(targetUser.expectedScore);
+      }
+      
+      setTimeout(() => setCalcStep(0), 1000);
+      
+    }, 2400);
   };
 
   const circumference = 2 * Math.PI * 110;
@@ -276,7 +325,7 @@ const Dashboard = () => {
           </Link>
           {isViewingDemo ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--neon-blue)', background: 'rgba(0,184,255,0.1)', padding: '0.5rem 1rem', borderRadius: '12px' }}>
-              <Users size={16} /> Public Read-Only Mode
+              <Search size={16} /> Explorer Mode
             </div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--neon-green)', background: 'rgba(0,255,163,0.1)', padding: '0.5rem 1rem', borderRadius: '12px' }}>
@@ -303,21 +352,46 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Random Demo Selector */}
-      <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-        <div style={{ color: 'var(--text-secondary)' }}>Mock Users:</div>
-        {DEMO_USERS.map((user, idx) => (
+      {/* Explorer Search Section */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '3rem' }}>
+        <div className="search-container">
+          <input 
+            type="text" 
+            className="search-input" 
+            placeholder="Enter ETH Address, ENS, or Lens handle..." 
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          />
           <button 
-            key={idx}
-            onClick={() => selectDemoUser(user)}
-            style={{ 
-              background: (activeUser.address === user.address && isViewingDemo) ? 'rgba(255,255,255,0.1)' : 'transparent',
-              borderColor: (activeUser.address === user.address && isViewingDemo) ? 'var(--text-primary)' : 'var(--border-color)'
-            }}
+            className="primary" 
+            style={{ padding: '0 2rem' }}
+            onClick={() => handleSearch()}
+            disabled={isSearching || !searchInput}
           >
-            {user.name}
+            {isSearching ? <RefreshCw className="lucide-spin" size={20} /> : <Search size={20} />}
+            {isSearching ? 'Scanning...' : 'Analyze'}
           </button>
-        ))}
+        </div>
+        
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <TrendingUp size={16} /> Trending Profiles:
+          </span>
+          {TRENDING_PROFILES.map((user, idx) => (
+            <div 
+              key={idx}
+              className="trending-tag"
+              onClick={() => selectTrendingProfile(user)}
+              style={{
+                borderColor: activeUser.name === user.name && !isSearching ? 'var(--neon-blue)' : 'var(--border-color)',
+                color: activeUser.name === user.name && !isSearching ? 'var(--neon-blue)' : 'var(--text-secondary)'
+              }}
+            >
+              #{user.name}
+            </div>
+          ))}
+        </div>
       </div>
 
       <motion.div 
@@ -329,12 +403,18 @@ const Dashboard = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           
           {/* Data Inputs */}
-          <div className="glass-panel" style={{ flex: 1 }}>
+          <div className="glass-panel" style={{ flex: 1, position: 'relative' }}>
+            {isSearching && (
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10, borderRadius: '24px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <RefreshCw className="lucide-spin" size={32} color="var(--neon-purple)" />
+              </div>
+            )}
+            
             <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
               <Database size={20} color="var(--neon-blue)"/> Wallet Analytics
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              Address: <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>{activeUser.address.substring(0,10)}...</span>
+              Address: <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>{activeUser.address.substring(0,20)}...</span>
             </p>
             
             <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '12px', marginTop: '1rem' }}>
@@ -400,7 +480,7 @@ const Dashboard = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2rem', flex: 1 }}>
             
             {/* Main Score Area */}
-            <div className="glass-panel" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+            <div className="glass-panel" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
               <div className="circular-score" style={{ marginBottom: '2rem' }}>
                 <svg width="250" height="250" viewBox="0 0 250 250" style={{ transform: 'rotate(-90deg)' }}>
                   <circle cx="125" cy="125" r="110" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="12" />
@@ -410,7 +490,7 @@ const Dashboard = () => {
                     strokeWidth="12"
                     strokeLinecap="round"
                     strokeDasharray={circumference}
-                    animate={{ strokeDashoffset: isCalculating ? circumference : strokeDashoffset }}
+                    animate={{ strokeDashoffset: (isCalculating || isSearching) ? circumference : strokeDashoffset }}
                     transition={{ duration: 1, ease: "easeOut" }}
                   />
                   <defs>
@@ -421,20 +501,24 @@ const Dashboard = () => {
                   </defs>
                 </svg>
                 <div className="score-text">
-                  <div className="score-number" style={{ fontSize: '4.5rem' }}>{displayedScore}</div>
+                  <div className="score-number" style={{ fontSize: '4.5rem', opacity: (isCalculating || isSearching) ? 0.3 : 1 }}>
+                    {displayedScore}
+                  </div>
                   <div className="score-label" style={{ fontSize: '1rem', fontWeight: 600 }}>PrivScore</div>
                 </div>
               </div>
 
-              <button 
-                className="primary" 
-                style={{ width: '80%', fontSize: '1.1rem', padding: '1rem' }}
-                onClick={calculateScoreFlow}
-                disabled={!account || isCalculating || isViewingDemo}
-              >
-                {isCalculating ? <RefreshCw className="lucide-spin" /> : <Zap />}
-                {isViewingDemo ? 'Connect Wallet to Compute' : (isCalculating ? 'Computing in Enclave...' : 'Calculate Private Score')}
-              </button>
+              {!isViewingDemo && (
+                <button 
+                  className="primary" 
+                  style={{ width: '80%', fontSize: '1.1rem', padding: '1rem' }}
+                  onClick={calculateScoreFlow}
+                  disabled={!account || isCalculating}
+                >
+                  {isCalculating ? <RefreshCw className="lucide-spin" /> : <Zap />}
+                  {isCalculating ? 'Computing in Enclave...' : 'Calculate Private Score'}
+                </button>
+              )}
             </div>
 
             {/* Verification Steps */}
@@ -496,8 +580,8 @@ const Dashboard = () => {
             </h4>
             <div className="ai-insights" style={{ minHeight: '80px', fontSize: '1rem' }}>
               {displayedAiText}
-              {(score > 0 && activeUser.aiAnalysis) && <span className="ai-cursor"></span>}
-              {(score === 0 || !activeUser.aiAnalysis) && <span style={{opacity: 0.5}}>Waiting for computation...</span>}
+              {(score > 0 && activeUser.aiAnalysis && !isSearching) && <span className="ai-cursor"></span>}
+              {(score === 0 || isSearching) && <span style={{opacity: 0.5}}>Waiting for computation...</span>}
             </div>
           </div>
 
@@ -546,10 +630,10 @@ const Dashboard = () => {
 
       {/* TEE Node Status Badge */}
       <div className="tee-status">
-        <div className={`status-dot ${isCalculating ? 'computing' : ''}`}></div>
+        <div className={`status-dot ${isCalculating || isSearching ? 'computing' : ''}`}></div>
         <div>
-          <div style={{ fontWeight: 'bold', color: isCalculating ? 'var(--neon-purple)' : 'var(--neon-green)' }}>
-            {isCalculating ? 'ENCLAVE COMPUTING' : 'ENCLAVE SECURE'}
+          <div style={{ fontWeight: 'bold', color: isCalculating || isSearching ? 'var(--neon-purple)' : 'var(--neon-green)' }}>
+            {isCalculating || isSearching ? 'ENCLAVE COMPUTING' : 'ENCLAVE SECURE'}
           </div>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Ritual Testnet • ID 1979</div>
         </div>
