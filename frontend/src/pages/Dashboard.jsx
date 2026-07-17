@@ -575,6 +575,14 @@ const Dashboard = () => {
                 <span className="data-label"><Code size={14} style={{display:'inline', marginRight:'4px'}}/> Commits</span>
                 <span className="data-value value-highlight">{activeUser.mockData.commits}</span>
               </div>
+              <div className="data-row">
+                <span className="data-label"><Activity size={14} style={{display:'inline', marginRight:'4px'}}/> Total Volume</span>
+                <span className="data-value">{activeUser.mockData.tx}</span>
+              </div>
+              <div className="data-row">
+                <span className="data-label"><Globe size={14} style={{display:'inline', marginRight:'4px'}}/> Social Rep</span>
+                <span className="data-value">{activeUser.mockData.social}</span>
+              </div>
             </div>
           </div>
         </div>
