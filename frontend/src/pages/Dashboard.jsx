@@ -32,21 +32,21 @@ export const TRENDING_PROFILES = [
   { 
     name: "vitalik.eth", 
     address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", 
-    mockData: { age: "8.2 Years", commits: "12,450", social: "Legendary", tx: "15,230 ETH", expectedScore: 950 },
+    mockData: { age: "8.2 Years", commits: "12,450", social: "Legendary", tx: "15,230 ETH", protocols: "124", gasSpent: "845 ETH", expectedScore: 950 },
     metrics: { onChain: 99, social: 99, financial: 98, nft: 80, sybilScore: 99 },
     aiAnalysis: "LLM Analysis: Verified Ethereum co-founder. Massive on-chain footprint. Exceptional social reputation and developer activity. Risk profile: Zero."
   },
   { 
     name: "0xDefiWhale", 
     address: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", 
-    mockData: { age: "4.5 Years", commits: "340", social: "High", tx: "3,420 ETH", expectedScore: 820 },
+    mockData: { age: "4.5 Years", commits: "340", social: "High", tx: "3,420 ETH", protocols: "45", gasSpent: "120 ETH", expectedScore: 820 },
     metrics: { onChain: 95, social: 70, financial: 90, nft: 40, sybilScore: 85 },
     aiAnalysis: "LLM Analysis: High volume DeFi power user. Consistent liquidity provider. Moderate developer activity. Risk profile: Very Low."
   },
   { 
     name: "0xAirdropHunter", 
     address: "0x1111111111111111111111111111111111111111", 
-    mockData: { age: "0.5 Years", commits: "12", social: "Low", tx: "2.1 ETH", expectedScore: 510 },
+    mockData: { age: "0.5 Years", commits: "12", social: "Low", tx: "2.1 ETH", protocols: "8", gasSpent: "0.4 ETH", expectedScore: 510 },
     metrics: { onChain: 45, social: 20, financial: 30, nft: 10, sybilScore: 30 },
     aiAnalysis: "LLM Analysis: High frequency of low-value transactions across multiple chains. Typical sybil pattern detected. Risk profile: High."
   }
@@ -250,7 +250,7 @@ const Dashboard = () => {
     setActiveUser({
       name: "Your Wallet",
       address: address,
-      mockData: { age: "?", commits: "?", social: "?", tx: "?" },
+      mockData: { age: "?", commits: "?", social: "?", tx: "?", protocols: "?", gasSpent: "?" },
       metrics: { onChain: 0, social: 0, financial: 0, nft: 0, sybilScore: 0 },
       aiAnalysis: ""
     });
@@ -319,7 +319,7 @@ const Dashboard = () => {
         setCalcStep(0);
         setActiveUser(prev => ({
           ...prev,
-          mockData: { age: "2.1 Years", commits: "840", social: "Good", tx: "34 ETH" },
+          mockData: { age: "2.1 Years", commits: "840", social: "Good", tx: "34 ETH", protocols: "22", gasSpent: "1.5 ETH" },
           metrics: { onChain: 88, social: 75, financial: 85, nft: 60, sybilScore: 90 },
           aiAnalysis: analysisStr
         }));
@@ -358,6 +358,8 @@ const Dashboard = () => {
           commits: Math.floor(Math.random() * 500).toString(), 
           social: ["Low", "Neutral", "Good"][Math.floor(Math.random() * 3)], 
           tx: (Math.random() * 100).toFixed(1) + " ETH", 
+          protocols: Math.floor(Math.random() * 50).toString(),
+          gasSpent: (Math.random() * 5).toFixed(2) + " ETH",
           expectedScore: Math.floor(Math.random() * 400 + 400) 
         },
         metrics: { 
@@ -630,6 +632,14 @@ const Dashboard = () => {
               <div className="data-row">
                 <span className="data-label"><Globe size={14} style={{display:'inline', marginRight:'4px'}}/> Social Rep</span>
                 <span className="data-value">{activeUser.mockData.social}</span>
+              </div>
+              <div className="data-row">
+                <span className="data-label"><Network size={14} style={{display:'inline', marginRight:'4px'}}/> Protocols Used</span>
+                <span className="data-value">{activeUser.mockData.protocols}</span>
+              </div>
+              <div className="data-row">
+                <span className="data-label"><Zap size={14} style={{display:'inline', marginRight:'4px'}}/> Gas Spent</span>
+                <span className="data-value">{activeUser.mockData.gasSpent}</span>
               </div>
             </div>
           </div>
