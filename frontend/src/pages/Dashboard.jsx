@@ -465,7 +465,7 @@ const Dashboard = () => {
       <div style={{ display: 'flex', justifyContent: 'center', gap: '3rem', padding: '1rem', marginBottom: '2rem', background: 'rgba(139, 92, 246, 0.05)', borderBottom: '1px solid var(--border-color)', borderTop: '1px solid var(--border-color)', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)', fontWeight: 600 }}>
           <Database size={16} color="var(--neon-blue)" />
-          <span>Ritual Balance: <span style={{ color: 'var(--neon-green)' }}>{ritualBalance} ETH</span></span>
+          <span>Ritual Balance: <span style={{ color: 'var(--neon-green)' }}>{ritualBalance} RITUAL</span></span>
         </div>
         <a href="https://docs.ritual.net/faucet" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', color: 'var(--text-primary)', fontWeight: 600 }} className="hover-link">
           <Zap size={16} color="var(--neon-purple)" />
