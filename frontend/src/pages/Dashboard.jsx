@@ -5,7 +5,7 @@ import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Glob
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import ForceGraph2D from 'react-force-graph-2d';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { playClickSound, playBlipSound, playSuccessSound, setAudioEnabled, getAudioEnabled } from '../utils/audio';
 
 const SCORE_CONTRACT_ADDRESS = "0x5320d14E4a86deF51723A806A38947498Ea09261";
@@ -387,11 +387,11 @@ const Dashboard = () => {
   const strokeDashoffset = circumference - (displayedScore / 850) * circumference;
 
   const radarData = [
-    { subject: 'DeFi Volume', A: activeUser.metrics.financial, fullMark: 100 },
-    { subject: 'NFT Activity', A: activeUser.metrics.nft, fullMark: 100 },
-    { subject: 'Social Rep', A: activeUser.metrics.social, fullMark: 100 },
-    { subject: 'Dev Commits', A: activeUser.metrics.onChain, fullMark: 100 },
-    { subject: 'Trust/Sybil', A: activeUser.metrics.sybilScore, fullMark: 100 },
+    { subject: `DeFi Volume: ${activeUser.metrics.financial}`, A: activeUser.metrics.financial, fullMark: 100 },
+    { subject: `NFT Activity: ${activeUser.metrics.nft}`, A: activeUser.metrics.nft, fullMark: 100 },
+    { subject: `Social Rep: ${activeUser.metrics.social}`, A: activeUser.metrics.social, fullMark: 100 },
+    { subject: `Dev Commits: ${activeUser.metrics.onChain}`, A: activeUser.metrics.onChain, fullMark: 100 },
+    { subject: `Trust/Sybil: ${activeUser.metrics.sybilScore}`, A: activeUser.metrics.sybilScore, fullMark: 100 },
   ];
 
   return (
@@ -561,6 +561,7 @@ const Dashboard = () => {
                   <PolarGrid stroke={theme === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'} />
                   <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
                   <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                  <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }} itemStyle={{ color: 'var(--neon-purple)' }} />
                   <Radar name="Profile" dataKey="A" stroke="var(--neon-purple)" fill="var(--neon-purple)" fillOpacity={0.4} />
                 </RadarChart>
               </ResponsiveContainer>
