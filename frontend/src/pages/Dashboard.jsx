@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ethers } from 'ethers';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, LogOut, TerminalSquare, Home, BarChart2, Search, TrendingUp, Network, Server, Volume2, VolumeX, Moon, Sun, ArrowRight } from 'lucide-react';
+import { Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, LogOut, TerminalSquare, Home, BarChart2, Search, TrendingUp, Network, Server, Volume2, VolumeX, Moon, Sun, ArrowRight, MessageSquare } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import ForceGraph2D from 'react-force-graph-2d';
@@ -106,6 +106,7 @@ const Dashboard = () => {
   
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const [audioOn, setAudioOn] = useState(true);
+  const [ritualBalance, setRitualBalance] = useState("0.000");
 
   const terminalRef = useRef(null);
 
@@ -209,7 +210,13 @@ const Dashboard = () => {
       setScore(Number(currentScore));
       const certId = await scoreContract.soulboundCertificates(targetAddress);
       setHasCert(certId > 0 || (isViewingDemo && currentScore >= 700));
-    } catch (err) {}
+
+      const pProvider = new ethers.JsonRpcProvider(RITUAL_RPC);
+      const bal = await pProvider.getBalance(targetAddress);
+      setRitualBalance(Number(ethers.formatEther(bal)).toFixed(3));
+    } catch (err) {
+      setRitualBalance("0.000");
+    }
   };
 
   const connectWallet = async () => {
@@ -453,6 +460,22 @@ const Dashboard = () => {
           )}
         </div>
       </header>
+
+      {/* Utility Bar */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '3rem', padding: '1rem', marginBottom: '2rem', background: 'rgba(139, 92, 246, 0.05)', borderBottom: '1px solid var(--border-color)', borderTop: '1px solid var(--border-color)', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)', fontWeight: 600 }}>
+          <Database size={16} color="var(--neon-blue)" />
+          <span>Ritual Balance: <span style={{ color: 'var(--neon-green)' }}>{ritualBalance} ETH</span></span>
+        </div>
+        <a href="https://docs.ritual.net/faucet" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', color: 'var(--text-primary)', fontWeight: 600 }} className="hover-link">
+          <Zap size={16} color="var(--neon-purple)" />
+          <span>Testnet Faucet</span>
+        </a>
+        <a href="https://discord.gg/ritual" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', color: 'var(--text-primary)', fontWeight: 600 }} className="hover-link">
+          <MessageSquare size={16} color="#5865F2" />
+          <span>Join Discord</span>
+        </a>
+      </div>
 
       {/* Explorer Search Section */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '3rem', width: '100%' }}>
@@ -778,6 +801,14 @@ const Dashboard = () => {
           animation: blink 1s step-end infinite;
         }
         @keyframes blink { 50% { opacity: 0; } }
+
+        .hover-link {
+          transition: all 0.2s ease;
+        }
+        .hover-link:hover {
+          color: var(--neon-purple) !important;
+          transform: translateY(-2px);
+        }
       `}</style>
     </>
   );
