@@ -440,11 +440,35 @@ const Dashboard = () => {
           </Link>
 
           {isViewingDemo ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--neon-blue)', background: 'rgba(0,184,255,0.1)', padding: '0.5rem 1rem', borderRadius: '12px' }}>
+            <div 
+              onClick={() => {
+                playClickSound();
+                const searchInput = document.querySelector('.search-input');
+                if(searchInput) {
+                  searchInput.focus();
+                  searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--neon-blue)', background: 'rgba(0,184,255,0.1)', padding: '0.5rem 1rem', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
+              onMouseOver={(e) => e.currentTarget.style.background = 'rgba(0,184,255,0.2)'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'rgba(0,184,255,0.1)'}
+              title="Click to search an address"
+            >
               <Search size={16} /> Explorer Mode
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--neon-green)', background: 'rgba(0,255,163,0.1)', padding: '0.5rem 1rem', borderRadius: '12px' }}>
+            <div 
+              onClick={() => {
+                playClickSound();
+                if (account && provider) {
+                  switchToMyWallet(account, provider);
+                }
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--neon-green)', background: 'rgba(0,255,163,0.1)', padding: '0.5rem 1rem', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
+              onMouseOver={(e) => e.currentTarget.style.background = 'rgba(0,255,163,0.2)'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'rgba(0,255,163,0.1)'}
+              title="View your connected wallet"
+            >
               <Wallet size={16} /> My Wallet Connected
             </div>
           )}
