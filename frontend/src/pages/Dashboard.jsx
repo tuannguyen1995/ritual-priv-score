@@ -13,7 +13,7 @@ import VerificationSteps from '../components/dashboard/VerificationSteps';
 import TerminalDisplay from '../components/dashboard/TerminalDisplay';
 import { playBlipSound, playSuccessSound, playClickSound, setAudioEnabled } from '../utils/audio';
 import { RITUAL_MODELS, TRENDING_PROFILES, generateGraphData, generateDeterministicMockData } from '../utils/mockData';
-import { useAccount, useDisconnect } from 'wagmi';
+import { useAccount, useDisconnect, useBalance } from 'wagmi';
 import toast from 'react-hot-toast';
 
 const Dashboard = () => {
@@ -36,7 +36,14 @@ const Dashboard = () => {
   const [liveNodes, setLiveNodes] = useState([]);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const [audioOn, setAudioOn] = useState(true);
-  const [ritualBalance, setRitualBalance] = useState("0.000");
+
+  const { data: balanceData } = useBalance({
+    address: address,
+  });
+  
+  const ritualBalance = isConnected && balanceData 
+    ? Number(balanceData.formatted).toFixed(3) 
+    : "0.000";
 
   const terminalRef = useRef(null);
   const graphContainerRef = useRef(null);
@@ -151,7 +158,6 @@ const Dashboard = () => {
       setScore(0);
       setHasCert(false);
     }
-    setRitualBalance("0.000"); // Mock balance
   };
 
   const switchToMyWallet = (addr) => {
