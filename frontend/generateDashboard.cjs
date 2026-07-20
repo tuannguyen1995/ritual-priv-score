@@ -1,4 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+const fs = require('fs');
+const path = require('path');
+
+const content = `import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
@@ -90,7 +93,7 @@ const Dashboard = () => {
       const newAttestation = {
         id: Math.random().toString(36).substring(2, 10),
         node: "0x" + Math.random().toString(16).substring(2, 6) + "..." + Math.random().toString(16).substring(2, 6),
-        time: `${Math.floor(Math.random() * 50 + 10)}ms`
+        time: \`\${Math.floor(Math.random() * 50 + 10)}ms\`
       };
       setLiveNodes(prev => [newAttestation, ...prev].slice(0, 5));
     }, 3000);
@@ -114,9 +117,9 @@ const Dashboard = () => {
         if (isViewingDemo) {
           fetchUserData(TRENDING_PROFILES[0].address, TRENDING_PROFILES[0]);
           setTerminalLogs([
-            `[SYSTEM] Connected to Ritual Network (ChainID: 1979)`,
-            `[TEE] Loaded previous inference for ${TRENDING_PROFILES[0].address}`,
-            `[RESULT] ${TRENDING_PROFILES[0].aiAnalysis}`
+            \`[SYSTEM] Connected to Ritual Network (ChainID: 1979)\`,
+            \`[TEE] Loaded previous inference for \${TRENDING_PROFILES[0].address}\`,
+            \`[RESULT] \${TRENDING_PROFILES[0].aiAnalysis}\`
           ]);
         }
       } catch (err) {}
@@ -170,24 +173,24 @@ const Dashboard = () => {
     setGraphData(generateGraphData("Your Wallet"));
     fetchUserData(addr, null);
     setTerminalLogs([
-      `[SYSTEM] Connected to wallet: ${addr}`,
-      `[INFO] Awaiting calculation command...`
+      \`[SYSTEM] Connected to wallet: \${addr}\`,
+      \`[INFO] Awaiting calculation command...\`
     ]);
   };
 
   const simulateTerminalOutput = (analysisStr) => {
     const logs = [
-      `[INFO] Initializing Secure Enclave...`,
-      `[AUTH] Node verified cryptographic signature.`,
-      `[PULL] Fetching on-chain historical data for ${activeUser.address.substring(0, 10)}...`,
-      `[TEE] Encrypting payload into memory...`,
-      `[MODEL] Booting ${selectedModel.name} (Hash: ${selectedModel.hash})...`,
-      `[COMPUTE] Executing LLM inference...`,
-      `[COMPUTE] Analyzing DeFi interactions...`,
-      `[COMPUTE] Assessing social graphs and sybil resistance...`,
-      `[ATTESTATION] Generating Zero-Knowledge Proof for result...`,
-      `[RESULT] ${analysisStr}`,
-      `[SYSTEM] Connection closed. Proof submitted on-chain.`
+      \`[INFO] Initializing Secure Enclave...\`,
+      \`[AUTH] Node verified cryptographic signature.\`,
+      \`[PULL] Fetching on-chain historical data for \${activeUser.address.substring(0, 10)}...\`,
+      \`[TEE] Encrypting payload into memory...\`,
+      \`[MODEL] Booting \${selectedModel.name} (Hash: \${selectedModel.hash})...\`,
+      \`[COMPUTE] Executing LLM inference...\`,
+      \`[COMPUTE] Analyzing DeFi interactions...\`,
+      \`[COMPUTE] Assessing social graphs and sybil resistance...\`,
+      \`[ATTESTATION] Generating Zero-Knowledge Proof for result...\`,
+      \`[RESULT] \${analysisStr}\`,
+      \`[SYSTEM] Connection closed. Proof submitted on-chain.\`
     ];
     
     setTerminalLogs([]);
@@ -233,7 +236,7 @@ const Dashboard = () => {
       console.error(err);
       setIsCalculating(false);
       setCalcStep(0);
-      setTerminalLogs(prev => [...prev, `[ERROR] Transaction failed or rejected.`]);
+      setTerminalLogs(prev => [...prev, \`[ERROR] Transaction failed or rejected.\`]);
       toast.error('Calculation failed');
     }
   };
@@ -273,11 +276,11 @@ const Dashboard = () => {
   };
 
   const radarData = [
-    { subject: `DeFi Volume: ${activeUser.metrics.financial}`, A: activeUser.metrics.financial, fullMark: 100 },
-    { subject: `NFT Activity: ${activeUser.metrics.nft}`, A: activeUser.metrics.nft, fullMark: 100 },
-    { subject: `Social Rep: ${activeUser.metrics.social}`, A: activeUser.metrics.social, fullMark: 100 },
-    { subject: `Dev Commits: ${activeUser.metrics.onChain}`, A: activeUser.metrics.onChain, fullMark: 100 },
-    { subject: `Trust/Sybil: ${activeUser.metrics.sybilScore}`, A: activeUser.metrics.sybilScore, fullMark: 100 },
+    { subject: \`DeFi Volume: \${activeUser.metrics.financial}\`, A: activeUser.metrics.financial, fullMark: 100 },
+    { subject: \`NFT Activity: \${activeUser.metrics.nft}\`, A: activeUser.metrics.nft, fullMark: 100 },
+    { subject: \`Social Rep: \${activeUser.metrics.social}\`, A: activeUser.metrics.social, fullMark: 100 },
+    { subject: \`Dev Commits: \${activeUser.metrics.onChain}\`, A: activeUser.metrics.onChain, fullMark: 100 },
+    { subject: \`Trust/Sybil: \${activeUser.metrics.sybilScore}\`, A: activeUser.metrics.sybilScore, fullMark: 100 },
   ];
 
   return (
@@ -334,7 +337,7 @@ const Dashboard = () => {
       </motion.div>
 
       <div className="tee-status">
-        <div className={`status-dot ${isCalculating || isSearching ? 'computing' : ''}`}></div>
+        <div className={\`status-dot \${isCalculating || isSearching ? 'computing' : ''}\`}></div>
         <div>
           <div style={{ fontWeight: 'bold', color: isCalculating || isSearching ? 'var(--neon-purple)' : 'var(--neon-green)' }}>
             {isCalculating || isSearching ? 'ENCLAVE COMPUTING' : 'ENCLAVE SECURE'}
@@ -345,7 +348,7 @@ const Dashboard = () => {
 
       <Footer />
       
-      <style>{`
+      <style>{\`
         .lucide-spin { animation: spin 2s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         
@@ -393,9 +396,13 @@ const Dashboard = () => {
             grid-template-columns: 1fr;
           }
         }
-      `}</style>
+      \`}</style>
     </>
   );
 };
 
 export default Dashboard;
+`;
+
+fs.writeFileSync(path.join(__dirname, 'src', 'pages', 'Dashboard.jsx'), content);
+console.log('Dashboard rewritten!');
