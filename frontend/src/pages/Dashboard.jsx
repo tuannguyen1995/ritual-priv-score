@@ -109,6 +109,8 @@ const Dashboard = () => {
   const [ritualBalance, setRitualBalance] = useState("0.000");
 
   const terminalRef = useRef(null);
+  const graphContainerRef = useRef(null);
+  const [graphWidth, setGraphWidth] = useState(400);
 
   useEffect(() => {
     document.documentElement.className = theme === 'light' ? 'light-theme' : '';
@@ -163,6 +165,17 @@ const Dashboard = () => {
       }
     };
     checkPersistedWallet();
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (graphContainerRef.current) {
+        setGraphWidth(graphContainerRef.current.offsetWidth);
+      }
+    };
+    handleResize(); // Initial measurement
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
@@ -558,6 +571,7 @@ const Dashboard = () => {
           
           {/* On-chain Graph */}
           <motion.div 
+            ref={graphContainerRef}
             className="glass-panel-premium" 
             style={{ position: 'relative', overflow: 'hidden', padding: 0, height: '300px' }}
             whileHover={{ scale: 1.01 }}
@@ -574,7 +588,7 @@ const Dashboard = () => {
             ) : (
               <ForceGraph2D
                 graphData={graphData}
-                width={400}
+                width={graphWidth}
                 height={300}
                 backgroundColor="transparent"
                 nodeRelSize={6}
