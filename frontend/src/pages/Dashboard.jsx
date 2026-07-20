@@ -810,8 +810,8 @@ const Dashboard = () => {
                 <h4 style={{ margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
                   <Server size={14} color="var(--neon-blue)" /> Live Attestations
                 </h4>
-                <div style={{ fontSize: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  <AnimatePresence>
+                <div style={{ fontSize: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', minHeight: '130px' }}>
+                  <AnimatePresence mode="popLayout">
                     {liveNodes.map(item => (
                       <motion.div 
                         key={item.id}
