@@ -231,16 +231,16 @@ const Dashboard = () => {
     try {
       const scoreContract = new ethers.Contract(SCORE_CONTRACT_ADDRESS, scoreAbi, targetProvider);
       let currentScore = await scoreContract.creditScores(targetAddress);
-      if (currentScore == 0 && isViewingDemo && userProfile) currentScore = userProfile.expectedScore; 
+      if (currentScore == 0 && userProfile) currentScore = userProfile.expectedScore; 
       setScore(Number(currentScore));
       const certId = await scoreContract.soulboundCertificates(targetAddress);
-      setHasCert(certId > 0 || (isViewingDemo && currentScore >= 700));
+      setHasCert(certId > 0 || (userProfile && currentScore >= 700));
 
       const pProvider = new ethers.JsonRpcProvider(RITUAL_RPC);
       const bal = await pProvider.getBalance(targetAddress);
       setRitualBalance(Number(ethers.formatEther(bal)).toFixed(3));
     } catch (err) {
-      if (isViewingDemo && userProfile) {
+      if (userProfile) {
         setScore(userProfile.expectedScore);
         setHasCert(userProfile.expectedScore >= 700);
       }
