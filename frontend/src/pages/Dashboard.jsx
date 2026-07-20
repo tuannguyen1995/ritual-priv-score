@@ -524,7 +524,7 @@ const Dashboard = () => {
           <Database size={16} color="var(--neon-blue)" />
           <span>Ritual Balance: <span style={{ color: 'var(--neon-green)' }}>{ritualBalance} RITUAL</span></span>
         </div>
-        <a href="https://docs.ritual.net/faucet" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', color: 'var(--text-primary)', fontWeight: 600 }} className="hover-link">
+        <a href="https://faucet.ritualfoundation.org/" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', color: 'var(--text-primary)', fontWeight: 600 }} className="hover-link">
           <Zap size={16} color="var(--neon-purple)" />
           <span>Testnet Faucet</span>
         </a>
