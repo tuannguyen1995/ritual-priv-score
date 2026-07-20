@@ -118,6 +118,11 @@ const Dashboard = () => {
   }, [theme]);
 
   useEffect(() => {
+    document.body.classList.add('aurora-theme');
+    return () => document.body.classList.remove('aurora-theme');
+  }, []);
+
+  useEffect(() => {
     setAudioEnabled(audioOn);
   }, [audioOn]);
 

@@ -39,18 +39,26 @@
 body {
   margin: 0;
   min-height: 100vh;
+  background: 
+    radial-gradient(circle at 15% 50%, rgba(0, 184, 255, 0.08), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%),
+    var(--bg-dark);
+  background-attachment: fixed;
+  overflow-x: hidden;
+  transition: background 0.5s ease;
+}
+
+body.aurora-theme {
   background-color: var(--bg-dark);
   background-image: 
     radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
     radial-gradient(at 100% 0%, rgba(0, 184, 255, 0.15) 0px, transparent 50%),
     radial-gradient(at 100% 100%, rgba(0, 255, 163, 0.1) 0px, transparent 50%),
     radial-gradient(at 0% 100%, rgba(255, 51, 102, 0.1) 0px, transparent 50%);
-  background-attachment: fixed;
-  overflow-x: hidden;
 }
 
 /* Animated Aurora Background Effect */
-.bg-grid::before, .bg-grid::after {
+.aurora-theme .bg-grid::before, .aurora-theme .bg-grid::after {
   content: '';
   position: fixed;
   top: -50%; left: -50%; width: 200%; height: 200%;
@@ -64,7 +72,7 @@ body {
       transparent 360deg);
   animation: rotateAurora 25s linear infinite;
 }
-.bg-grid::after {
+.aurora-theme .bg-grid::after {
   animation: rotateAurora 35s linear infinite reverse;
   background: 
     conic-gradient(from 180deg at 50% 50%, 
