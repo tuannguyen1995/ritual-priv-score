@@ -607,7 +607,7 @@ const Dashboard = () => {
                   <PolarGrid stroke={theme === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'} />
                   <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
                   <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                  <Tooltip contentStyle={{ backgroundColor: 'rgba(20,24,34,0.9)', borderColor: 'var(--neon-purple)', borderRadius: '8px', color: 'var(--text-primary)', boxShadow: '0 0 15px rgba(139, 92, 246, 0.3)' }} itemStyle={{ color: 'var(--neon-purple)' }} />
+                  <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--neon-purple)', borderRadius: '8px', color: 'var(--text-primary)', boxShadow: '0 0 15px rgba(139, 92, 246, 0.3)' }} itemStyle={{ color: 'var(--neon-purple)' }} />
                   <Radar name="Profile" dataKey="A" stroke="var(--neon-purple)" fill="var(--neon-purple)" fillOpacity={0.4} />
                 </RadarChart>
               </ResponsiveContainer>
@@ -629,14 +629,14 @@ const Dashboard = () => {
                   key={idx} 
                   whileHover={{ scale: 1.05, y: -4, borderColor: 'rgba(255,255,255,0.2)' }} 
                   style={{ 
-                    background: 'linear-gradient(145deg, rgba(20,24,34,0.6) 0%, rgba(30,35,45,0.8) 100%)', 
-                    border: '1px solid rgba(255,255,255,0.05)', 
+                    background: 'linear-gradient(145deg, var(--grid-bg-1) 0%, var(--grid-bg-2) 100%)', 
+                    border: '1px solid var(--border-color)', 
                     borderRadius: '16px', 
                     padding: '0.8rem', 
                     display: 'flex', 
                     alignItems: 'center',
                     gap: '0.8rem',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                     cursor: 'default',
                     backdropFilter: 'blur(10px)'
                   }}
