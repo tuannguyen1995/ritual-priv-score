@@ -400,14 +400,13 @@ const Dashboard = () => {
         aiAnalysis: "LLM Analysis: Wallet data fetched and analyzed via Enclave. Behavior appears normal with mixed signals on social presence."
       };
     }
-    setActiveUser(targetUser);
-    
     simulateTerminalOutput(targetUser.aiAnalysis);
     
     setTimeout(() => setCalcStep(2), 800);
     setTimeout(() => setCalcStep(3), 1600);
     
     setTimeout(() => {
+      setActiveUser(targetUser);
       setGraphData(generateGraphData(targetUser.name));
       setIsSearching(false);
       setCalcStep(4);
