@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ethers } from 'ethers';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Hexagon, Shield, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, LogOut, TerminalSquare, Home, BarChart2, Search, TrendingUp, Network, Server, Volume2, VolumeX, Moon, Sun, ArrowRight, MessageSquare } from 'lucide-react';
+import { Shield, Hexagon, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, LogOut, TerminalSquare, Home, BarChart2, Search, TrendingUp, Network, Server, Volume2, VolumeX, Moon, Sun, ArrowRight, MessageSquare } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import ForceGraph2D from 'react-force-graph-2d';
@@ -407,7 +407,7 @@ const Dashboard = () => {
     <>
       <header style={{ display: 'flex', alignItems: 'center' }}>
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Hexagon color="var(--neon-purple)" size={28} />
+          <Shield color="var(--neon-purple)" size={28} />
           <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)' }}>RitualPrivScore</span>
         </Link>
         
