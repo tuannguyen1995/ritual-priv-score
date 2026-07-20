@@ -554,14 +554,19 @@ const Dashboard = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           
           {/* On-chain Graph */}
-          <div className="glass-panel" style={{ position: 'relative', overflow: 'hidden', padding: 0, height: '300px' }}>
+          <motion.div 
+            className="glass-panel-premium" 
+            style={{ position: 'relative', overflow: 'hidden', padding: 0, height: '300px' }}
+            whileHover={{ scale: 1.01 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          >
             <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 10, display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-card)', padding: '0.5rem 1rem', borderRadius: '50px', border: '1px solid var(--border-color)', backdropFilter: 'blur(5px)' }}>
               <Network size={16} color="var(--neon-purple)" />
               <span style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>On-chain Footprint</span>
             </div>
             {isSearching ? (
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--bg-card)', zIndex: 10, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <RefreshCw className="lucide-spin" size={32} color="var(--neon-purple)" />
+                <div style={{ width: '80%', height: '80%', borderRadius: '12px' }} className="skeleton-box"></div>
               </div>
             ) : (
               <ForceGraph2D
@@ -590,59 +595,53 @@ const Dashboard = () => {
                 }}
               />
             )}
-          </div>
+          </motion.div>
 
           {/* Radar Chart Block */}
-          <div className="glass-panel" style={{ flex: 1, position: 'relative', minHeight: '300px' }}>
+          <motion.div 
+            className="glass-panel-premium" 
+            style={{ flex: 1, position: 'relative', minHeight: '300px' }}
+            whileHover={{ scale: 1.01 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          >
             {isSearching && (
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--bg-card)', zIndex: 10, borderRadius: '24px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <RefreshCw className="lucide-spin" size={32} color="var(--neon-purple)" />
+                <div style={{ width: '90%', height: '90%', borderRadius: '12px' }} className="skeleton-box"></div>
               </div>
             )}
             
-            <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
-              <BarChart2 size={20} color="var(--neon-blue)"/> Radar Risk Profile
+            <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', color: 'var(--text-primary)' }}>
+              <BarChart2 size={20} color="var(--neon-blue)"/> <span className="text-gradient-blue">Radar Risk Profile</span>
             </h3>
             
-            <div style={{ width: '100%', height: '250px' }}>
+            <div style={{ width: '100%', height: '250px', filter: 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.2))' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                   <PolarGrid stroke={theme === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'} />
                   <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
                   <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                  <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }} itemStyle={{ color: 'var(--neon-purple)' }} />
+                  <Tooltip contentStyle={{ backgroundColor: 'rgba(20,24,34,0.9)', borderColor: 'var(--neon-purple)', borderRadius: '8px', color: 'var(--text-primary)', boxShadow: '0 0 15px rgba(139, 92, 246, 0.3)' }} itemStyle={{ color: 'var(--neon-purple)' }} />
                   <Radar name="Profile" dataKey="A" stroke="var(--neon-purple)" fill="var(--neon-purple)" fillOpacity={0.4} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
-              <div className="data-row">
-                <span className="data-label"><Wallet size={14} style={{display:'inline', marginRight:'4px'}}/> Wallet Age</span>
-                <span className="data-value">{activeUser.mockData.age}</span>
-              </div>
-              <div className="data-row">
-                <span className="data-label"><Code size={14} style={{display:'inline', marginRight:'4px'}}/> Commits</span>
-                <span className="data-value value-highlight">{activeUser.mockData.commits}</span>
-              </div>
-              <div className="data-row">
-                <span className="data-label"><Activity size={14} style={{display:'inline', marginRight:'4px'}}/> Total Volume</span>
-                <span className="data-value">{activeUser.mockData.tx}</span>
-              </div>
-              <div className="data-row">
-                <span className="data-label"><Globe size={14} style={{display:'inline', marginRight:'4px'}}/> Social Rep</span>
-                <span className="data-value">{activeUser.mockData.social}</span>
-              </div>
-              <div className="data-row">
-                <span className="data-label"><Network size={14} style={{display:'inline', marginRight:'4px'}}/> Protocols Used</span>
-                <span className="data-value">{activeUser.mockData.protocols}</span>
-              </div>
-              <div className="data-row">
-                <span className="data-label"><Zap size={14} style={{display:'inline', marginRight:'4px'}}/> Gas Spent</span>
-                <span className="data-value">{activeUser.mockData.gasSpent}</span>
-              </div>
+              {[
+                { label: 'Wallet Age', icon: <Wallet size={14} style={{marginRight:'4px'}}/>, val: activeUser.mockData.age },
+                { label: 'Commits', icon: <Code size={14} style={{marginRight:'4px'}}/>, val: <span className="value-highlight">{activeUser.mockData.commits}</span> },
+                { label: 'Total Volume', icon: <Activity size={14} style={{marginRight:'4px'}}/>, val: activeUser.mockData.tx },
+                { label: 'Social Rep', icon: <Globe size={14} style={{marginRight:'4px'}}/>, val: activeUser.mockData.social },
+                { label: 'Protocols Used', icon: <Network size={14} style={{marginRight:'4px'}}/>, val: activeUser.mockData.protocols },
+                { label: 'Gas Spent', icon: <Zap size={14} style={{marginRight:'4px'}}/>, val: activeUser.mockData.gasSpent }
+              ].map((item, idx) => (
+                <motion.div key={idx} className="data-row" whileHover={{ scale: 1.05, x: 5 }} style={{ cursor: 'default', padding: '0.2rem' }}>
+                  <span className="data-label" style={{ display: 'flex', alignItems: 'center' }}>{item.icon} {item.label}</span>
+                  <span className="data-value">{item.val}</span>
+                </motion.div>
+              ))}
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Right Column: Score & AI */}
@@ -651,7 +650,11 @@ const Dashboard = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2rem' }}>
             
             {/* Main Score Area */}
-            <div className="glass-panel" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+            <motion.div 
+              className="glass-panel-premium" 
+              style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative' }}
+              whileHover={{ scale: 1.01 }}
+            >
               <div className="circular-score" style={{ marginBottom: '2rem' }}>
                 <svg width="250" height="250" viewBox="0 0 250 250" style={{ transform: 'rotate(-90deg)' }}>
                   <circle cx="125" cy="125" r="110" fill="none" stroke="var(--border-color)" strokeWidth="12" />
@@ -702,7 +705,7 @@ const Dashboard = () => {
                   </button>
                 </motion.div>
               )}
-            </div>
+            </motion.div>
 
             {/* Verification Steps & Live Network */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -776,36 +779,26 @@ const Dashboard = () => {
           </div>
 
           {/* AI Inference Block - TEE Terminal */}
-          <div className="glass-panel" style={{ background: 'var(--terminal-bg)', border: '1px solid var(--border-color)', flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div className="glass-panel" style={{ background: 'var(--terminal-bg)', border: '1px solid var(--border-color)', flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
             <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1rem 0', color: 'var(--text-primary)', fontFamily: 'monospace' }}>
-              <TerminalSquare size={16} /> TEE ENCLAVE TERMINAL
+              <TerminalSquare size={16} color="var(--neon-green)" /> <span className="text-gradient-green">TEE ENCLAVE TERMINAL</span>
               <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Model: {selectedModel.id}</span>
             </h4>
             <div 
               className="ai-insights" 
               ref={terminalRef}
-              style={{ 
-                flex: 1, 
-                fontSize: '0.85rem', 
-                fontFamily: 'monospace', 
-                color: 'var(--neon-green)', 
-                background: 'transparent',
-                overflowY: 'auto',
-                maxHeight: '200px',
-                padding: '0.5rem'
-              }}
             >
+              <div className="scanline"></div>
               {terminalLogs.map((log, i) => (
                 <div key={i} style={{ marginBottom: '0.3rem', opacity: i === terminalLogs.length - 1 ? 1 : 0.7 }}>
                   {log.includes('[ERROR]') ? <span style={{color: '#ff4444'}}>{log}</span> :
-                   log.includes('[RESULT]') ? <span style={{color: 'var(--neon-purple)', fontWeight: 'bold'}}>{log}</span> :
+                   log.includes('[RESULT]') ? <span style={{color: '#38bdf8', fontWeight: 'bold'}}>{log}</span> :
                    log}
                 </div>
               ))}
-              {(isCalculating || isSearching) && <span className="ai-cursor">_</span>}
+              {(isCalculating || isSearching) && <div className="ai-cursor"></div>}
             </div>
           </div>
-
         </div>
 
       </motion.div>
