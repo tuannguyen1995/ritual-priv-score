@@ -23,8 +23,8 @@ const ritualTestnet = defineChain({
   network: 'ritual-testnet',
   nativeCurrency: { decimals: 18, name: 'Ritual', symbol: 'RITUAL' },
   rpcUrls: {
-    default: { http: ['https://rpc.ritual.net'] },
-    public: { http: ['https://rpc.ritual.net'] },
+    default: { http: ['https://rpc.ritualfoundation.org'] },
+    public: { http: ['https://rpc.ritualfoundation.org'] },
   },
 });
 
@@ -33,7 +33,7 @@ const config = getDefaultConfig({
   projectId: 'c8f7422f4bd0ec623714b62db4eb8b22', // Standard public test ID
   chains: [ritualTestnet],
   transports: {
-    [ritualTestnet.id]: http('https://rpc.ritual.net'),
+    [ritualTestnet.id]: http('https://rpc.ritualfoundation.org'),
   },
 });
 
