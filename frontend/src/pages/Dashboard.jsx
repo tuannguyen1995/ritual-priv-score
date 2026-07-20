@@ -32,23 +32,30 @@ export const TRENDING_PROFILES = [
   { 
     name: "vitalik.eth", 
     address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", 
-    mockData: { age: "8.2 Years", commits: "12,450", social: "Legendary", tx: "15,230 ETH", protocols: "124", gasSpent: "845 ETH", modelsDeployed: "12", nodesRun: "3", inferTasks: "14,200", expectedScore: 950 },
-    metrics: { onChain: 99, social: 99, financial: 98, nft: 80, sybilScore: 99 },
-    aiAnalysis: "LLM Analysis: Verified Ethereum co-founder. Massive on-chain footprint. Exceptional social reputation and developer activity. Risk profile: Zero."
+    mockData: { age: "8.5 Years", commits: "15,320", social: "Legendary", tx: "24,500 ETH", protocols: "214", gasSpent: "1,240 ETH", modelsDeployed: "12", nodesRun: "3", inferTasks: "14,200", expectedScore: 990 },
+    metrics: { onChain: 99, social: 99, financial: 99, nft: 85, sybilScore: 99 },
+    aiAnalysis: "LLM Analysis: Verified Ethereum co-founder. Massive on-chain footprint and unmatched developer activity. High involvement in foundational protocols. Sybil risk: 0%."
   },
   { 
-    name: "0xDefiWhale", 
-    address: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", 
-    mockData: { age: "4.5 Years", commits: "340", social: "High", tx: "3,420 ETH", protocols: "45", gasSpent: "120 ETH", modelsDeployed: "0", nodesRun: "1", inferTasks: "840", expectedScore: 820 },
-    metrics: { onChain: 95, social: 70, financial: 90, nft: 40, sybilScore: 85 },
-    aiAnalysis: "LLM Analysis: High volume DeFi power user. Consistent liquidity provider. Moderate developer activity. Risk profile: Very Low."
+    name: "justinsun.eth", 
+    address: "0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296", 
+    mockData: { age: "6.1 Years", commits: "24", social: "High", tx: "1.2M ETH", protocols: "45", gasSpent: "3,420 ETH", modelsDeployed: "0", nodesRun: "0", inferTasks: "105", expectedScore: 850 },
+    metrics: { onChain: 90, social: 85, financial: 99, nft: 60, sybilScore: 90 },
+    aiAnalysis: "LLM Analysis: Known crypto founder / whale. Extremely high volume financial transactions across DeFi. Low GitHub commits but massive liquidity provision. Sybil risk: 2%."
   },
   { 
-    name: "0xAirdropHunter", 
-    address: "0x1111111111111111111111111111111111111111", 
-    mockData: { age: "0.5 Years", commits: "12", social: "Low", tx: "2.1 ETH", protocols: "8", gasSpent: "0.4 ETH", modelsDeployed: "0", nodesRun: "0", inferTasks: "12", expectedScore: 510 },
-    metrics: { onChain: 45, social: 20, financial: 30, nft: 10, sybilScore: 30 },
-    aiAnalysis: "LLM Analysis: High frequency of low-value transactions across multiple chains. Typical sybil pattern detected. Risk profile: High."
+    name: "jaredfromsubway.eth", 
+    address: "0xae2Fc483527B8EF99EB5D9B44875F005ba1FaE13", 
+    mockData: { age: "1.2 Years", commits: "0", social: "Infamous", tx: "840k ETH", protocols: "12", gasSpent: "45,000 ETH", modelsDeployed: "1", nodesRun: "10", inferTasks: "2.4M", expectedScore: 610 },
+    metrics: { onChain: 85, social: 20, financial: 95, nft: 5, sybilScore: 50 },
+    aiAnalysis: "LLM Analysis: Highly active MEV bot operator. Exceptional transaction frequency and gas consumption. Zero social or standard protocol interaction. Flagged for bot-like behavior. Sybil risk: 85%."
+  },
+  { 
+    name: "ai-researcher.eth", 
+    address: "0x892555E75350E11f2058d086C72b9C94C9493d72", 
+    mockData: { age: "2.4 Years", commits: "4,210", social: "Medium", tx: "45 ETH", protocols: "18", gasSpent: "2.1 ETH", modelsDeployed: "42", nodesRun: "15", inferTasks: "850,000", expectedScore: 880 },
+    metrics: { onChain: 75, social: 60, financial: 40, nft: 30, sybilScore: 95 },
+    aiAnalysis: "LLM Analysis: Dedicated AI agent developer. Massive usage of compute nodes and inference tasks on Ritual network. High commit frequency. Sybil risk: 5%."
   }
 ];
 
