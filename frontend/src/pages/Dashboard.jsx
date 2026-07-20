@@ -39,6 +39,9 @@ const Dashboard = () => {
 
   const { data: balanceData } = useBalance({
     address: address,
+    query: {
+      refetchInterval: 5000,
+    }
   });
   
   const ritualBalance = isConnected && balanceData 
