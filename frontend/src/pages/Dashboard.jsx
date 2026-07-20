@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ethers } from 'ethers';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Hexagon, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, LogOut, TerminalSquare, Home, BarChart2, Search, TrendingUp, Network, Server, Volume2, VolumeX, Moon, Sun, ArrowRight, MessageSquare } from 'lucide-react';
+import { Shield, Hexagon, Activity, Award, Database, Cpu, CheckCircle, Wallet, Code, Globe, Zap, RefreshCw, LogOut, TerminalSquare, Home, BarChart2, Search, TrendingUp, Network, Server, Volume2, VolumeX, Moon, Sun, ArrowRight, MessageSquare, BrainCircuit } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import ForceGraph2D from 'react-force-graph-2d';
@@ -32,21 +32,21 @@ export const TRENDING_PROFILES = [
   { 
     name: "vitalik.eth", 
     address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", 
-    mockData: { age: "8.2 Years", commits: "12,450", social: "Legendary", tx: "15,230 ETH", protocols: "124", gasSpent: "845 ETH", expectedScore: 950 },
+    mockData: { age: "8.2 Years", commits: "12,450", social: "Legendary", tx: "15,230 ETH", protocols: "124", gasSpent: "845 ETH", modelsDeployed: "12", nodesRun: "3", inferTasks: "14,200", expectedScore: 950 },
     metrics: { onChain: 99, social: 99, financial: 98, nft: 80, sybilScore: 99 },
     aiAnalysis: "LLM Analysis: Verified Ethereum co-founder. Massive on-chain footprint. Exceptional social reputation and developer activity. Risk profile: Zero."
   },
   { 
     name: "0xDefiWhale", 
     address: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", 
-    mockData: { age: "4.5 Years", commits: "340", social: "High", tx: "3,420 ETH", protocols: "45", gasSpent: "120 ETH", expectedScore: 820 },
+    mockData: { age: "4.5 Years", commits: "340", social: "High", tx: "3,420 ETH", protocols: "45", gasSpent: "120 ETH", modelsDeployed: "0", nodesRun: "1", inferTasks: "840", expectedScore: 820 },
     metrics: { onChain: 95, social: 70, financial: 90, nft: 40, sybilScore: 85 },
     aiAnalysis: "LLM Analysis: High volume DeFi power user. Consistent liquidity provider. Moderate developer activity. Risk profile: Very Low."
   },
   { 
     name: "0xAirdropHunter", 
     address: "0x1111111111111111111111111111111111111111", 
-    mockData: { age: "0.5 Years", commits: "12", social: "Low", tx: "2.1 ETH", protocols: "8", gasSpent: "0.4 ETH", expectedScore: 510 },
+    mockData: { age: "0.5 Years", commits: "12", social: "Low", tx: "2.1 ETH", protocols: "8", gasSpent: "0.4 ETH", modelsDeployed: "0", nodesRun: "0", inferTasks: "12", expectedScore: 510 },
     metrics: { onChain: 45, social: 20, financial: 30, nft: 10, sybilScore: 30 },
     aiAnalysis: "LLM Analysis: High frequency of low-value transactions across multiple chains. Typical sybil pattern detected. Risk profile: High."
   }
@@ -250,7 +250,7 @@ const Dashboard = () => {
     setActiveUser({
       name: "Your Wallet",
       address: address,
-      mockData: { age: "?", commits: "?", social: "?", tx: "?", protocols: "?", gasSpent: "?" },
+      mockData: { age: "?", commits: "?", social: "?", tx: "?", protocols: "?", gasSpent: "?", modelsDeployed: "?", nodesRun: "?", inferTasks: "?" },
       metrics: { onChain: 0, social: 0, financial: 0, nft: 0, sybilScore: 0 },
       aiAnalysis: ""
     });
@@ -319,7 +319,7 @@ const Dashboard = () => {
         setCalcStep(0);
         setActiveUser(prev => ({
           ...prev,
-          mockData: { age: "2.1 Years", commits: "840", social: "Good", tx: "34 ETH", protocols: "22", gasSpent: "1.5 ETH" },
+          mockData: { age: "2.1 Years", commits: "840", social: "Good", tx: "34 ETH", protocols: "22", gasSpent: "1.5 ETH", modelsDeployed: "1", nodesRun: "1", inferTasks: "450" },
           metrics: { onChain: 88, social: 75, financial: 85, nft: 60, sybilScore: 90 },
           aiAnalysis: analysisStr
         }));
@@ -360,6 +360,9 @@ const Dashboard = () => {
           tx: (Math.random() * 100).toFixed(1) + " ETH", 
           protocols: Math.floor(Math.random() * 50).toString(),
           gasSpent: (Math.random() * 5).toFixed(2) + " ETH",
+          modelsDeployed: Math.floor(Math.random() * 5).toString(),
+          nodesRun: Math.floor(Math.random() * 3).toString(),
+          inferTasks: Math.floor(Math.random() * 2000).toString(),
           expectedScore: Math.floor(Math.random() * 400 + 400) 
         },
         metrics: { 
@@ -626,18 +629,34 @@ const Dashboard = () => {
               </ResponsiveContainer>
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginTop: '1.5rem' }}>
               {[
-                { label: 'Wallet Age', icon: <Wallet size={14} style={{marginRight:'4px'}}/>, val: activeUser.mockData.age },
-                { label: 'Commits', icon: <Code size={14} style={{marginRight:'4px'}}/>, val: <span className="value-highlight">{activeUser.mockData.commits}</span> },
-                { label: 'Total Volume', icon: <Activity size={14} style={{marginRight:'4px'}}/>, val: activeUser.mockData.tx },
-                { label: 'Social Rep', icon: <Globe size={14} style={{marginRight:'4px'}}/>, val: activeUser.mockData.social },
-                { label: 'Protocols Used', icon: <Network size={14} style={{marginRight:'4px'}}/>, val: activeUser.mockData.protocols },
-                { label: 'Gas Spent', icon: <Zap size={14} style={{marginRight:'4px'}}/>, val: activeUser.mockData.gasSpent }
+                { label: 'Wallet Age', icon: <Wallet size={16} color="var(--neon-blue)"/>, val: activeUser.mockData.age },
+                { label: 'Commits', icon: <Code size={16} color="var(--neon-green)"/>, val: activeUser.mockData.commits, highlight: true },
+                { label: 'Total Volume', icon: <Activity size={16} color="var(--neon-purple)"/>, val: activeUser.mockData.tx },
+                { label: 'Social Rep', icon: <Globe size={16} color="#38bdf8"/>, val: activeUser.mockData.social },
+                { label: 'Protocols', icon: <Network size={16} color="var(--text-secondary)"/>, val: activeUser.mockData.protocols },
+                { label: 'Gas Spent', icon: <Zap size={16} color="#ffaa00"/>, val: activeUser.mockData.gasSpent },
+                { label: 'Deployed Models', icon: <BrainCircuit size={16} color="var(--neon-purple)"/>, val: activeUser.mockData.modelsDeployed },
+                { label: 'Active Nodes', icon: <Server size={16} color="var(--neon-blue)"/>, val: activeUser.mockData.nodesRun },
+                { label: 'Inferences', icon: <Cpu size={16} color="var(--neon-green)"/>, val: activeUser.mockData.inferTasks, highlight: true }
               ].map((item, idx) => (
-                <motion.div key={idx} className="data-row" whileHover={{ scale: 1.05, x: 5 }} style={{ cursor: 'default', padding: '0.2rem' }}>
-                  <span className="data-label" style={{ display: 'flex', alignItems: 'center' }}>{item.icon} {item.label}</span>
-                  <span className="data-value">{item.val}</span>
+                <motion.div 
+                  key={idx} 
+                  whileHover={{ scale: 1.05, borderColor: 'var(--neon-purple)', backgroundColor: 'rgba(139, 92, 246, 0.05)' }} 
+                  style={{ 
+                    background: 'rgba(255,255,255,0.02)', 
+                    border: '1px solid var(--border-color)', 
+                    borderRadius: '12px', 
+                    padding: '0.8rem', 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '0.5rem',
+                    cursor: 'default'
+                  }}
+                >
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.icon} {item.label}</span>
+                  <span style={{ fontSize: '1.1rem', fontFamily: 'monospace', fontWeight: 'bold', color: item.highlight ? 'var(--neon-green)' : 'var(--text-primary)' }}>{item.val}</span>
                 </motion.div>
               ))}
             </div>
