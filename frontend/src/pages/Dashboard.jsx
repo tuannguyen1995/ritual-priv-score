@@ -240,6 +240,10 @@ const Dashboard = () => {
       const bal = await pProvider.getBalance(targetAddress);
       setRitualBalance(Number(ethers.formatEther(bal)).toFixed(3));
     } catch (err) {
+      if (isViewingDemo && userProfile) {
+        setScore(userProfile.expectedScore);
+        setHasCert(userProfile.expectedScore >= 700);
+      }
       setRitualBalance("0.000");
     }
   };
