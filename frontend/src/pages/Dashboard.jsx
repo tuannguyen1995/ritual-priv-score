@@ -231,7 +231,7 @@ const Dashboard = () => {
     try {
       const scoreContract = new ethers.Contract(SCORE_CONTRACT_ADDRESS, scoreAbi, targetProvider);
       let currentScore = await scoreContract.creditScores(targetAddress);
-      if (currentScore == 0 && userProfile) currentScore = userProfile.expectedScore; 
+      if (currentScore == 0 && userProfile && userProfile.mockData) currentScore = userProfile.mockData.expectedScore; 
       setScore(Number(currentScore));
       const certId = await scoreContract.soulboundCertificates(targetAddress);
       setHasCert(certId > 0 || (userProfile && currentScore >= 700));
@@ -240,9 +240,9 @@ const Dashboard = () => {
       const bal = await pProvider.getBalance(targetAddress);
       setRitualBalance(Number(ethers.formatEther(bal)).toFixed(3));
     } catch (err) {
-      if (userProfile) {
-        setScore(userProfile.expectedScore);
-        setHasCert(userProfile.expectedScore >= 700);
+      if (userProfile && userProfile.mockData) {
+        setScore(userProfile.mockData.expectedScore);
+        setHasCert(userProfile.mockData.expectedScore >= 700);
       }
       setRitualBalance("0.000");
     }
@@ -417,7 +417,7 @@ const Dashboard = () => {
       if (publicProvider) {
         fetchUserData(targetUser.address, publicProvider, targetUser);
       } else {
-        setScore(targetUser.expectedScore);
+        setScore(targetUser.mockData?.expectedScore || 0);
       }
       setTimeout(() => setCalcStep(0), 1000);
     }, 3500);
