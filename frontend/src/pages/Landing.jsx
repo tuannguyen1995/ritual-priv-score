@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, ArrowRight, Lock, Zap, Cpu } from 'lucide-react';
+import { Hexagon, Shield, ArrowRight, Lock, Zap, Cpu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import Particles, { initParticlesEngine } from "@tsparticles/react";
@@ -173,7 +173,7 @@ const Landing = () => {
               ease: "easeInOut"
             }}
           >
-            <Shield color="white" size={40} />
+            <Hexagon color="white" size={40} />
           </motion.div>
         </motion.div>
 
